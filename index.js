@@ -46,13 +46,30 @@ _.map = function (promises, fn) {
   return _.promise(function (resolve, reject) {
     var mapped = [];
     
-    _.each(promises, function (promise, resolve, reject, idx) {
+    _.each(asArray(promises), function (promise, resolve, reject, idx) {
       fn(promise, function (value) {
         mapped.push(Promise.from(value));
         resolve();
       }, reject, idx);
     }).then(function () {
       resolve(mapped);
+    }, reject);
+  });
+};
+
+_.reduce = function (promises, fn) {
+  return _.promise(function (resolve, reject) {
+    promises = asArray(promises);
+    
+    var accum = promises.shift();
+    
+    _.each(promises, function (promise, resolve, reject, idx) {
+      fn(accum, promise, function (val) {
+        accum = Promise.from(val);
+        resolve();
+      }, reject, 0);
+    }).then(function () {
+      resolve(Promise.from(accum));
     }, reject);
   });
 };

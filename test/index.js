@@ -59,6 +59,24 @@ test('arrays', function (t) {
     });
   });
   
+  test('reduce', function (t) {
+    var promises = [
+      Promise.from(123),
+      Promise.from(456),
+      Promise.from(789)
+    ];
+    
+    _.reduce(promises, function (prevPromise, currPromise, resolve, reject, idx) {
+      Promise.all(prevPromise, currPromise).then(function (res) {
+        resolve(res);
+      });
+    }).then(function (result) {
+      t.deepEqual(result, [[123, 456], 789], 'reduces array of promises');
+      t.end();
+    });
+    
+  });
+  
   t.end();
 });
 
