@@ -15,6 +15,17 @@ test('creating promises', function (t) {
   });
 });
 
+test('partially applies functions and arguments', function (t) {
+  var activity = function (arg1, arg2) {
+    t.equal(arg1, 'arg1', 'passed the first argument');
+    t.equal(arg2, 'arg2', 'passed the second argument');
+    t.end();
+  };
+  
+  var doThis = _.partial(activity, 'arg1');
+  doThis('arg2');
+});
+
 test('arrays', function (t) {
   test('each', function (t) {
     var iterator = 0;
@@ -24,13 +35,15 @@ test('arrays', function (t) {
       Promise.from(456)
     ];
     
-    _.each(function (promise, resolve, reject, idx) {
+    var iterate = _.each(function (promise, resolve, reject, idx) {
       promise.then(function (val) {
         iterator += 1;
         t.equal(idx, iterator, 'passes in the index');
         resolve('this argument does nothing'); 
       });
-    }, promises).then(function () {
+    })
+    
+    iterate(promises).then(function () {
       t.equal(iterator, 2, 'loops through each promise');
       t.end();
     });
@@ -48,6 +61,12 @@ test('arrays', function (t) {
       });
     }, promises).then(function (res) {
       t.deepEqual(res, [124, 457], 'mapped array of promises');
+      t.end();
+    });
+    
+    test('is partialized', function (t) {
+      var fn = _.map();
+      t.equal(typeof fn, 'function', 'partialized');
       t.end();
     });
   });
@@ -70,6 +89,12 @@ test('arrays', function (t) {
       t.equal(result, 'abc', 'reduces array of promises');
       t.end();
     });
+    
+    test('is partialized', function (t) {
+      var fn = _.reduce();
+      t.equal(typeof fn, 'function', 'partialized');
+      t.end();
+    });
   });
   
   test('reduceRight', function (t) {
@@ -90,6 +115,12 @@ test('arrays', function (t) {
       t.equal(result, 'cba', 'reduceRights array of promises');
       t.end();
     });
+    
+    test('is partialized', function (t) {
+      var fn = _.reduceRight();
+      t.equal(typeof fn, 'function', 'partialized');
+      t.end();
+    });
   });
   
   test('filter', function (t) {
@@ -108,6 +139,12 @@ test('arrays', function (t) {
       t.equal(res[0], 123, 'promise value');
       t.end();
     });
+    
+    test('is partialized', function (t) {
+      var fn = _.filter();
+      t.equal(typeof fn, 'function', 'partialized');
+      t.end();
+    });
   });
   
   test('find', function (t) {
@@ -123,6 +160,12 @@ test('arrays', function (t) {
       });
     }, promises).then(function (res) {
       t.equal(res, 123, 'found value');
+      t.end();
+    });
+    
+    test('is partialized', function (t) {
+      var fn = _.find();
+      t.equal(typeof fn, 'function', 'partialized');
       t.end();
     });
   });
@@ -156,10 +199,17 @@ test('collections', function (t) {
     _.pluck('key1', [promise1, promise2]).then(function (val) {
       t.deepEqual(val, ['promise1value1', 'promise2value1'], 'plucks values from array');
     });
+    
+    test('is partialized', function (t) {
+      var fn = _.pluck();
+      t.equal(typeof fn, 'function', 'partialized');
+      t.end();
+    });
   });
   
   // TODO: 
-  // * partiall apply each method
+  // * partially apply each method
+  // * angular support
   
   /*
   

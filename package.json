@@ -4,7 +4,7 @@
   "description": "Functionally handle promises",
   "main": "index.js",
   "scripts": {
-    "test": "tapes test/**/*.js | tspec"
+    "test": "tapes test/**/*.js | tap-dot"
   },
   "repository": {
     "type": "git",

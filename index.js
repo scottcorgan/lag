@@ -4,27 +4,45 @@ var asArray = require('as-array');
 var drainer = require('drainer');
 var callbacker = require('callbacker');
 
-var _ = {};
+var underpromise = {};
 
-_.promise = function (fn) {
+underpromise.promise = function (fn) {
   fn = fn || function () {};
   return new Promise(fn);
 };
 
-_.asPromise = function (value) {
+underpromise.asPromise = function (value) {
   return Promise.from(value);
+};
+
+underpromise.partial = function () {
+  var partialArgs = asArray(arguments);
+  var fn = partialArgs.shift();
+  
+  return function () {
+    var appliedArgs = asArray(arguments);
+    return fn.apply(fn, partialArgs.concat(appliedArgs));
+  };
+};
+
+underpromise._partialize = function (callback) {
+  return function (fn, promises) {
+    fn = fn || function (promise, resolve) {resolve();};
+    if (!promises) return underpromise.partial(callback, fn);
+    return callback(fn, promises);
+  };
 };
 
 // Arrays
 
-_.each = function (fn, promises) {
+underpromise.each = underpromise._partialize(function (fn, promises) {
   var idx = 0;
   var queue = asArray(promises).map(function (promise) {
     return function () {
       var args = callbacker(arguments);
       idx += 1;
       
-      _.promise(function (resolve, reject) {
+      underpromise.promise(function (resolve, reject) {
         fn(promise, resolve, reject, idx, function (err) {
           // Exit
           // TODO: make this exit the loop here
@@ -38,19 +56,19 @@ _.each = function (fn, promises) {
   
   var drain = drainer(queue);
   
-  return _.promise(function (resolve, reject) {
+  return underpromise.promise(function (resolve, reject) {
     drain(function (err) {
       if (err) return reject(err);
       return resolve();
     });
   });
-};
+});
 
-_.map = function (fn, promises) {
-  return _.promise(function (resolve, reject) {
+underpromise.map = underpromise._partialize(function (fn, promises) {
+  return underpromise.promise(function (resolve, reject) {
     var mapped = [];
     
-    _.each(function (promise, resolve, reject, idx) {
+    underpromise.each(function (promise, resolve, reject, idx) {
       fn(promise, function (value) {
         mapped.push(value);
         resolve();
@@ -59,13 +77,13 @@ _.map = function (fn, promises) {
       resolve(mapped);
     }, reject);
   });
-};
+});
 
-_.reduce = function (fn, promises) {
-  return _.promise(function (resolve, reject) {
+underpromise.reduce = underpromise._partialize(function (fn, promises) {
+  return underpromise.promise(function (resolve, reject) {
     var accum = promises.shift();
     
-    _.each(function (promise, resolve, reject, idx) {
+    underpromise.each(function (promise, resolve, reject, idx) {
       fn(accum, promise, function (val) {
         accum = Promise.from(val);
         resolve();
@@ -74,17 +92,17 @@ _.reduce = function (fn, promises) {
       resolve(accum);
     }, reject);
   });
-};
+});
 
-_.reduceRight = function (fn, promises) {
-  return _.reduce(fn, promises.reverse());
-};
+underpromise.reduceRight = underpromise._partialize(function (fn, promises) {
+  return underpromise.reduce(fn, promises.reverse());
+});
 
-_.filter = function (fn, promises) {
-  return _.promise(function (resolve, reject) {
+underpromise.filter = underpromise._partialize(function (fn, promises) {
+  return underpromise.promise(function (resolve, reject) {
     var filtered = [];
     
-    _.each(function (promise, resolve, reject, idx) {
+    underpromise.each(function (promise, resolve, reject, idx) {
       fn(promise, function (passed) {
         if (passed) filtered.push(promise);
         resolve();
@@ -93,13 +111,13 @@ _.filter = function (fn, promises) {
       resolve(Promise.all(filtered));
     }, reject);
   });
-};
+});
 
-_.find = function (fn, promises) {
-  return _.promise(function (resolve, reject) {
+underpromise.find = underpromise._partialize(function (fn, promises) {
+  return underpromise.promise(function (resolve, reject) {
     var wantedPromise;
     
-    _.each(function (promise, _resolve, reject, idx, _exit) {
+    underpromise.each(function (promise, _resolve, reject, idx, _exit) {
       fn(promise, function (passed) {
         if (passed) {
           wantedPromise = promise;
@@ -113,18 +131,18 @@ _.find = function (fn, promises) {
       resolve(wantedPromise);
     }, reject);
   });
-};
+});
 
 // Collections
 
-_.pluck = function (key, promise) {
-  return _.promise(function (resolve, reject) {
+underpromise.pluck = underpromise._partialize(function (key, promise) {
+  return underpromise.promise(function (resolve, reject) {
     Promise.all(promise).then(function (res) {
       resolve(res.map(function (obj) {
         return obj[key];
       }));
     }, reject);
   });
-};
+});
 
-module.exports = _;
+module.exports = underpromise;
