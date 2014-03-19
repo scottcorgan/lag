@@ -209,7 +209,9 @@ test('collections', function (t) {
   
   // TODO: 
   // * partially apply each method
-  // * angular support
+  // - ability to switch order of arguments
+  //   - via args.fn, args.promises, etc.
+  // - angular support
   
   /*
   

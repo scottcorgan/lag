@@ -6,6 +6,10 @@ var callbacker = require('callbacker');
 
 var underpromise = {};
 
+underpromise._method = function (name, fn) {
+  return this[name] = this._partialize(fn);
+};
+
 underpromise.promise = function (fn) {
   fn = fn || function () {};
   return new Promise(fn);
@@ -35,7 +39,7 @@ underpromise._partialize = function (callback) {
 
 // Arrays
 
-underpromise.each = underpromise._partialize(function (fn, promises) {
+underpromise._method('each', function (fn, promises) {
   var idx = 0;
   var queue = asArray(promises).map(function (promise) {
     return function () {
@@ -64,7 +68,7 @@ underpromise.each = underpromise._partialize(function (fn, promises) {
   });
 });
 
-underpromise.map = underpromise._partialize(function (fn, promises) {
+underpromise._method('map', function (fn, promises) {
   return underpromise.promise(function (resolve, reject) {
     var mapped = [];
     
@@ -79,7 +83,7 @@ underpromise.map = underpromise._partialize(function (fn, promises) {
   });
 });
 
-underpromise.reduce = underpromise._partialize(function (fn, promises) {
+underpromise._method('reduce', function (fn, promises) {
   return underpromise.promise(function (resolve, reject) {
     var accum = promises.shift();
     
@@ -94,11 +98,11 @@ underpromise.reduce = underpromise._partialize(function (fn, promises) {
   });
 });
 
-underpromise.reduceRight = underpromise._partialize(function (fn, promises) {
+underpromise._method('reduceRight', function (fn, promises) {
   return underpromise.reduce(fn, promises.reverse());
 });
 
-underpromise.filter = underpromise._partialize(function (fn, promises) {
+underpromise._method('filter', function (fn, promises) {
   return underpromise.promise(function (resolve, reject) {
     var filtered = [];
     
@@ -113,7 +117,7 @@ underpromise.filter = underpromise._partialize(function (fn, promises) {
   });
 });
 
-underpromise.find = underpromise._partialize(function (fn, promises) {
+underpromise._method('find', function (fn, promises) {
   return underpromise.promise(function (resolve, reject) {
     var wantedPromise;
     
@@ -135,7 +139,7 @@ underpromise.find = underpromise._partialize(function (fn, promises) {
 
 // Collections
 
-underpromise.pluck = underpromise._partialize(function (key, promise) {
+underpromise._method('pluck', function (key, promise) {
   return underpromise.promise(function (resolve, reject) {
     Promise.all(promise).then(function (res) {
       resolve(res.map(function (obj) {
