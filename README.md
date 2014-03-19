@@ -1,0 +1,4 @@
+underpromise
+============
+
+Functionally handle promises
