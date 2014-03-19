@@ -1,0 +1,32 @@
+{
+  "name": "underpromise",
+  "version": "0.0.0",
+  "description": "Functionally handle promises",
+  "main": "index.js",
+  "scripts": {
+    "test": "tapes test/**/*.js | tap-dot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scottcorgan/underpromise.git"
+  },
+  "keywords": [
+    "promise",
+    "functional",
+    "underscore",
+    "lodash"
+  ],
+  "author": "Scott Corgan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/scottcorgan/underpromise/issues"
+  },
+  "homepage": "https://github.com/scottcorgan/underpromise",
+  "devDependencies": {
+    "tapes": "^0.4.1",
+    "tap-dot": "^0.1.1"
+  },
+  "dependencies": {
+    "promise": "^4.0.0"
+  }
+}
