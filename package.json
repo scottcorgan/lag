@@ -1,6 +1,6 @@
 {
   "name": "underpromise",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Functionally handle promises",
   "main": "index.js",
   "scripts": {
