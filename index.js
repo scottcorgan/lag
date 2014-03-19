@@ -17,7 +17,7 @@ _.asPromise = function (value) {
 
 // Arrays
 
-_.each = function (promises, fn) {
+_.each = function (fn, promises) {
   var idx = 0;
   var queue = asArray(promises).map(function (promise) {
     return function () {
@@ -25,7 +25,9 @@ _.each = function (promises, fn) {
       idx += 1;
       
       _.promise(function (resolve, reject) {
-        fn(promise, resolve, reject, idx, function () {
+        fn(promise, resolve, reject, idx, function (err) {
+          // Exit
+          // TODO: make this exit the loop here
           resolve();
         });
       }).then(function (value) {
@@ -44,56 +46,60 @@ _.each = function (promises, fn) {
   });
 };
 
-_.map = function (promises, fn) {
+_.map = function (fn, promises) {
   return _.promise(function (resolve, reject) {
     var mapped = [];
     
-    _.each(promises, function (promise, resolve, reject, idx) {
+    _.each(function (promise, resolve, reject, idx) {
       fn(promise, function (value) {
         mapped.push(value);
         resolve();
       }, reject, idx);
-    }).then(function () {
+    }, promises).then(function () {
       resolve(mapped);
     }, reject);
   });
 };
 
-_.reduce = function (promises, fn) {
+_.reduce = function (fn, promises) {
   return _.promise(function (resolve, reject) {
     var accum = promises.shift();
     
-    _.each(promises, function (promise, resolve, reject, idx) {
+    _.each(function (promise, resolve, reject, idx) {
       fn(accum, promise, function (val) {
         accum = Promise.from(val);
         resolve();
       }, reject, idx);
-    }).then(function () {
+    }, promises).then(function () {
       resolve(accum);
     }, reject);
   });
 };
 
-_.filter = function (promises, fn) {
+_.reduceRight = function (fn, promises) {
+  return _.reduce(fn, promises.reverse());
+};
+
+_.filter = function (fn, promises) {
   return _.promise(function (resolve, reject) {
     var filtered = [];
     
-    _.each(promises, function (promise, resolve, reject, idx) {
+    _.each(function (promise, resolve, reject, idx) {
       fn(promise, function (passed) {
         if (passed) filtered.push(promise);
         resolve();
       }, reject, idx);
-    }).then(function () {
+    }, promises).then(function () {
       resolve(Promise.all(filtered));
     }, reject);
   });
 };
 
-_.find = function (promises, fn) {
+_.find = function (fn, promises) {
   return _.promise(function (resolve, reject) {
     var wantedPromise;
     
-    _.each(promises, function (promise, _resolve, reject, idx, _exit) {
+    _.each(function (promise, _resolve, reject, idx, _exit) {
       fn(promise, function (passed) {
         if (passed) {
           wantedPromise = promise;
@@ -103,7 +109,7 @@ _.find = function (promises, fn) {
           _resolve();
         }
       }, reject, idx);
-    }).then(function () {
+    }, promises).then(function () {
       resolve(wantedPromise);
     }, reject);
   });
@@ -111,7 +117,7 @@ _.find = function (promises, fn) {
 
 // Collections
 
-_.pluck = function (promise, key) {
+_.pluck = function (key, promise) {
   return _.promise(function (resolve, reject) {
     Promise.all(promise).then(function (res) {
       resolve(res.map(function (obj) {

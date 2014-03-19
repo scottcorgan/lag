@@ -24,13 +24,13 @@ test('arrays', function (t) {
       Promise.from(456)
     ];
     
-    _.each(promises, function (promise, resolve, reject, idx) {
+    _.each(function (promise, resolve, reject, idx) {
       promise.then(function (val) {
         iterator += 1;
         t.equal(idx, iterator, 'passes in the index');
         resolve('this argument does nothing'); 
       });
-    }).then(function () {
+    }, promises).then(function () {
       t.equal(iterator, 2, 'loops through each promise');
       t.end();
     });
@@ -42,11 +42,11 @@ test('arrays', function (t) {
       Promise.from(456)
     ];
     
-    _.map(promises, function (promise, resolve, reject, idx) {
+    _.map(function (promise, resolve, reject, idx) {
       promise.then(function (val) {
         resolve(val + 1);
       });
-    }).then(function (res) {
+    }, promises).then(function (res) {
       t.deepEqual(res, [124, 457], 'mapped array of promises');
       t.end();
     });
@@ -54,20 +54,40 @@ test('arrays', function (t) {
   
   test('reduce', function (t) {
     var promises = [
-      Promise.from(123),
-      Promise.from(456),
-      Promise.from(789)
+      Promise.from('a'),
+      Promise.from('b'),
+      Promise.from('c')
     ];
     
     // Adds all the numbers in the promises together
-    _.reduce(promises, function (prevPromise, currPromise, resolve, reject, idx) {
+    _.reduce(function (prevPromise, currPromise, resolve, reject, idx) {
       Promise.all(prevPromise, currPromise).then(function (res) {
         resolve(res.reduce(function (memo, val) {
           return memo + val;
         }));
       });
-    }).then(function (result) {
-      t.equal(result, 1368, 'reuces array of promises');
+    }, promises).then(function (result) {
+      t.equal(result, 'abc', 'reduces array of promises');
+      t.end();
+    });
+  });
+  
+  test('reduceRight', function (t) {
+    var promises = [
+      Promise.from('a'),
+      Promise.from('b'),
+      Promise.from('c')
+    ];
+    
+    // Adds all the numbers in the promises together
+    _.reduceRight(function (prevPromise, currPromise, resolve, reject, idx) {
+      Promise.all(prevPromise, currPromise).then(function (res) {
+        resolve(res.reduce(function (memo, val) {
+          return memo + val;
+        }));
+      });
+    }, promises).then(function (result) {
+      t.equal(result, 'cba', 'reduceRights array of promises');
       t.end();
     });
   });
@@ -79,11 +99,11 @@ test('arrays', function (t) {
       Promise.from(789)
     ];
     
-    _.filter(promises, function (promise, resolve, reject, idx) {
+    _.filter(function (promise, resolve, reject, idx) {
       promise.then(function (num) {
         resolve(num < 200);
       });
-    }).then(function (res) {
+    }, promises).then(function (res) {
       t.equal(res.length, 1, 'filtered promsies');
       t.equal(res[0], 123, 'promise value');
       t.end();
@@ -97,11 +117,11 @@ test('arrays', function (t) {
       Promise.from(789)
     ];
     
-    _.find(promises, function (promise, resolve, reject, idx) {
+    _.find(function (promise, resolve, reject, idx) {
       promise.then(function (num) {
         resolve(num < 200);
       });
-    }).then(function (res) {
+    }, promises).then(function (res) {
       t.equal(res, 123, 'found value');
       t.end();
     });
@@ -111,6 +131,7 @@ test('arrays', function (t) {
 });
 
 test('collections', function (t) {
+  
   test('pluck', function (t) {
     t.plan(2);
     
@@ -128,14 +149,43 @@ test('collections', function (t) {
       });
     });
     
-    _.pluck(promise1, 'key1').then(function (val) {
+    _.pluck('key1', promise1).then(function (val) {
       t.deepEqual(val, ['promise1value1'], 'plucks a single value');
     });
     
-    _.pluck([promise1, promise2], 'key1').then(function (val) {
+    _.pluck('key1', [promise1, promise2]).then(function (val) {
       t.deepEqual(val, ['promise1value1', 'promise2value1'], 'plucks values from array');
     });
   });
+  
+  // TODO: 
+  // * partiall apply each method
+  
+  /*
+  
+  collections
+  ===================
+  where
+  findWhere
+  reject
+  every
+  some
+  contains
+  max
+  min
+  sortBy
+  indexBy
+  countyBy
+  
+  Objects
+  ==============================
+  keys
+  values
+  extend
+  defaults
+  pick
+  omit
+   */
   
   t.end();
 });
