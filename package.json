@@ -26,7 +26,8 @@
     "tapes": "^0.4.1",
     "tap-dot": "^0.1.1",
     "promise": "^4.0.0",
-    "is-promise": "^1.0.0"
+    "is-promise": "^1.0.0",
+    "tap-spec": "^0.1.5"
   },
   "dependencies": {
     "promise": "^4.0.0",

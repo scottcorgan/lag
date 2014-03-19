@@ -66,16 +66,41 @@ test('arrays', function (t) {
       Promise.from(789)
     ];
     
+    // Adds all the numbers in the promises together
     _.reduce(promises, function (prevPromise, currPromise, resolve, reject, idx) {
       Promise.all(prevPromise, currPromise).then(function (res) {
-        resolve(res);
+        resolve(res.reduce(function (memo, val) {
+          return memo + val;
+        }));
       });
     }).then(function (result) {
-      t.deepEqual(result, [[123, 456], 789], 'reduces array of promises');
+      t.equal(result, 1368, 'reuces array of promises');
       t.end();
     });
-    
   });
+  
+  test('filter', function (t) {
+    var promises = [
+      Promise.from(123),
+      Promise.from(456),
+      Promise.from(789)
+    ];
+    
+    _.filter(promises, function (promise, resolve, reject, idx) {
+      promise.then(function (num) {
+        if (num < 200) resolve(true);
+        else resolve(false);
+      });
+    }).then(function (promises) {
+      t.equal(promises.length, 1, 'filtered promsies');
+      promises[0].then(function (num) {
+        t.equal(num, 123, 'promise value');
+        t.end();
+      });
+    });
+  });
+  
+  // test('find');
   
   t.end();
 });

@@ -46,7 +46,7 @@ _.map = function (promises, fn) {
   return _.promise(function (resolve, reject) {
     var mapped = [];
     
-    _.each(asArray(promises), function (promise, resolve, reject, idx) {
+    _.each(promises, function (promise, resolve, reject, idx) {
       fn(promise, function (value) {
         mapped.push(Promise.from(value));
         resolve();
@@ -59,17 +59,30 @@ _.map = function (promises, fn) {
 
 _.reduce = function (promises, fn) {
   return _.promise(function (resolve, reject) {
-    promises = asArray(promises);
-    
     var accum = promises.shift();
     
     _.each(promises, function (promise, resolve, reject, idx) {
       fn(accum, promise, function (val) {
         accum = Promise.from(val);
         resolve();
-      }, reject, 0);
+      }, reject, idx);
     }).then(function () {
-      resolve(Promise.from(accum));
+      resolve(accum);
+    }, reject);
+  });
+};
+
+_.filter = function (promises, fn) {
+  return _.promise(function (resolve, reject) {
+    var filtered = [];
+    
+    _.each(promises, function (promise, resolve, reject, idx) {
+      fn(promise, function (passed) {
+        if (passed) filtered.push(promise);
+        resolve();
+      }, reject, idx);
+    }).then(function () {
+      resolve(filtered);
     }, reject);
   });
 };
