@@ -4,7 +4,7 @@
   "description": "Functionally handle promises",
   "main": "index.js",
   "scripts": {
-    "test": "tapes test/**/*.js | tap-dot"
+    "test": "tapes test/**/*.js | tspec"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,8 @@
     "tap-dot": "^0.1.1",
     "promise": "^4.0.0",
     "is-promise": "^1.0.0",
-    "tap-spec": "^0.1.5"
+    "tap-spec": "^0.1.5",
+    "tape": "^2.10.2"
   },
   "dependencies": {
     "promise": "^4.0.0",

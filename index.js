@@ -25,7 +25,9 @@ _.each = function (promises, fn) {
       idx += 1;
       
       _.promise(function (resolve, reject) {
-        fn(promise, resolve, reject, idx);
+        fn(promise, resolve, reject, idx, function () {
+          resolve();
+        });
       }).then(function (value) {
         args.callback.apply(null, null, value);
       }, args.callback);
@@ -48,7 +50,7 @@ _.map = function (promises, fn) {
     
     _.each(promises, function (promise, resolve, reject, idx) {
       fn(promise, function (value) {
-        mapped.push(Promise.from(value));
+        mapped.push(value);
         resolve();
       }, reject, idx);
     }).then(function () {
@@ -82,7 +84,27 @@ _.filter = function (promises, fn) {
         resolve();
       }, reject, idx);
     }).then(function () {
-      resolve(filtered);
+      resolve(Promise.all(filtered));
+    }, reject);
+  });
+};
+
+_.find = function (promises, fn) {
+  return _.promise(function (resolve, reject) {
+    var wantedPromise;
+    
+    _.each(promises, function (promise, _resolve, reject, idx, _exit) {
+      fn(promise, function (passed) {
+        if (passed) {
+          wantedPromise = promise;
+          _exit();
+        }
+        else{
+          _resolve();
+        }
+      }, reject, idx);
+    }).then(function () {
+      resolve(wantedPromise);
     }, reject);
   });
 };

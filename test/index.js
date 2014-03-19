@@ -37,8 +37,6 @@ test('arrays', function (t) {
   });
   
   test('map', function (t) {
-    t.plan(2);
-    
     var promises = [
       Promise.from(123),
       Promise.from(456)
@@ -48,14 +46,9 @@ test('arrays', function (t) {
       promise.then(function (val) {
         resolve(val + 1);
       });
-    }).then(function (promises) {
-      promises[0].then(function (val) {
-        t.equal(val, 124, 'mapped value of first promise in array');
-      });
-      
-      promises[1].then(function (val) {
-        t.equal(val, 457, 'mapped value of second promise in array');
-      });
+    }).then(function (res) {
+      t.deepEqual(res, [124, 457], 'mapped array of promises');
+      t.end();
     });
   });
   
@@ -88,19 +81,31 @@ test('arrays', function (t) {
     
     _.filter(promises, function (promise, resolve, reject, idx) {
       promise.then(function (num) {
-        if (num < 200) resolve(true);
-        else resolve(false);
+        resolve(num < 200);
       });
-    }).then(function (promises) {
-      t.equal(promises.length, 1, 'filtered promsies');
-      promises[0].then(function (num) {
-        t.equal(num, 123, 'promise value');
-        t.end();
-      });
+    }).then(function (res) {
+      t.equal(res.length, 1, 'filtered promsies');
+      t.equal(res[0], 123, 'promise value');
+      t.end();
     });
   });
   
-  // test('find');
+  test('find', function (t) {
+    var promises = [
+      Promise.from(123),
+      Promise.from(456),
+      Promise.from(789)
+    ];
+    
+    _.find(promises, function (promise, resolve, reject, idx) {
+      promise.then(function (num) {
+        resolve(num < 200);
+      });
+    }).then(function (res) {
+      t.equal(res, 123, 'found value');
+      t.end();
+    });
+  });
   
   t.end();
 });
