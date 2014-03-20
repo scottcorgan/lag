@@ -16,8 +16,8 @@ utilities
 
 collections
 ===================
-- where
-- findWhere
+x where
+x findWhere
 - reject
 - every
 - some
@@ -28,7 +28,7 @@ collections
 - indexBy
 - countyBy
 
-Objects
+Objects ?? these will only work for a single promise;
 ==============================
 - keys
 - values
@@ -474,8 +474,7 @@ describe('arrays', function () {
     }).done();
   });
   
-  // (remove all falsey values)
-  it('#compact()', function (done) {
+  it('#compact(), remove all falsey values', function (done) {
     var promises = [
       _.asPromise(123),
       _.asPromise(false),
@@ -490,19 +489,92 @@ describe('arrays', function () {
     }).done();
   }); 
   
-  it('#concat()');
-  it('#concatSeries()');
+  it('#first()', function (done) {
+    var promises = [
+      _.asPromise(123),
+      _.asPromise(456)
+    ];
+    
+    _.first(promises).then(function (res) {
+      expect(res).to.equal(123);
+      done();
+    }).done();
+  });
   
-  it('#first()');
-  it('#initial()');
-  it('#last()');
-  it('#rest()');
+  it('#initial(), everything but the last', function (done) {
+    var promises = [
+      _.asPromise(123),
+      _.asPromise(456),
+      _.asPromise(789)
+    ];
+    
+    _.initial(promises).then(function (res) {
+      expect(res).to.eql([123,456]);
+      done();
+    }).done();
+  });
+  
+  it('#last()', function (done) {
+    var promises = [
+      _.asPromise(123),
+      _.asPromise(456),
+      _.asPromise(789)
+    ];
+    
+    _.last(promises).then(function (res) {
+      expect(res).to.equal(789);
+      done();
+    }).done();
+  });
+  
+  it('#rest(), everything but the first', function (done) {
+    var promises = [
+      _.asPromise(123),
+      _.asPromise(456),
+      _.asPromise(789)
+    ];
+    
+    _.rest(promises).then(function (res) {
+      expect(res).to.eql([456,789]);
+      done();
+    }).done();
+  });
+  
+});
+
+describe('objects', function () {
+  
   
 });
 
 describe('collections', function () {
   
-  it('pluck', function (done) {
+  it('#where()', function (done) {
+    var promises = [
+      _.asPromise({id:1, name: 'node'}),
+      _.asPromise({id:2, name: 'javascript'})
+    ];
+    
+    _.where({id: 1}, promises).then(function (res) {
+      expect(res.length).to.equal(1);
+      expect(res[0].id).to.equal(1);
+      done();
+    }).done();
+  });
+  
+  it('#findWhere()', function (done) {
+    var promises = [
+      _.asPromise({id:1, name: 'node'}),
+      _.asPromise({id:2, name: 'javascript'})
+    ];
+    
+    _.findWhere({id: 2}, promises).then(function (res) {
+      expect(res).to.eql({id: 2, name: 'javascript'});
+      done();
+    }).done();
+  });
+  
+  it('#pluck()', function (done) {
     var promise1 = _.promise(function (resolve, reject) {
       resolve({
         key1: 'promise1value1',

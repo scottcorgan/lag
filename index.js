@@ -219,6 +219,22 @@ underpromise._method('reduceRight', function (args) {
 
 underpromise.compact = underpromise.filter(underpromise.boolean);
 
+underpromise.first = function (promises) {
+  return underpromise.asPromise(promises.shift());
+};
+
+underpromise.last = function (promises) {
+  return underpromise.asPromise(promises.pop());
+};
+
+underpromise.initial = function (promises) {
+  return underpromise.all(promises.slice(0, promises.length-1));
+};
+
+underpromise.rest = function (promises) {
+  return underpromise.all(promises.slice(1));
+};
+
 // Collections
 
 underpromise._method('pluck', function (args) {
@@ -228,6 +244,26 @@ underpromise._method('pluck', function (args) {
         return obj[args.fn];
       }));
     }, reject);
+  });
+});
+
+['where', 'findWhere'].forEach(function (name) {
+  underpromise._method(name, function (args) {
+    var where = args.fn;
+    var keys = Object.keys(where);
+    var find = (name === 'where') ? 'filter': 'find';
+    
+    return underpromise[find](function (promise) {
+      return promise.then(function (obj) {
+        var matching = false;
+        
+        keys.forEach(function (key) {
+          if (obj[key] === where[key]) matching = true;
+        });
+        
+        return underpromise.asPromise(matching);
+        });
+    }, args.promises)
   });
 });
 
