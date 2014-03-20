@@ -4,7 +4,7 @@
   "description": "Functionally handle promises",
   "main": "index.js",
   "scripts": {
-    "test": "tapes test/**/*.js | tap-dot"
+    "test": "mocha test/"
   },
   "repository": {
     "type": "git",
@@ -23,13 +23,12 @@
   },
   "homepage": "https://github.com/scottcorgan/underpromise",
   "devDependencies": {
-    "tapes": "^0.4.1",
-    "tap-dot": "^0.1.1",
     "promise": "^4.0.0",
     "is-promise": "^1.0.0",
-    "tap-spec": "^0.1.5",
-    "tape": "^2.10.2",
-    "clone": "^0.1.11"
+    "clone": "^0.1.11",
+    "lab": "^1.9.0",
+    "mocha": "^1.18.2",
+    "expect.js": "^0.3.1"
   },
   "dependencies": {
     "promise": "^4.0.0",

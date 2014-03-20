@@ -17,7 +17,7 @@ underpromise._method = function (name, fn) {
 
 underpromise._args = function (args) {
   
-  // TODO: wow make this less ugly
+  // TODO: wow, make this less ugly
   
   var _args =  {
     fn: (args[0] && args[0].fn) // are the args an object?
@@ -38,6 +38,11 @@ underpromise._args = function (args) {
     };
   }
   
+  // Trun all values into promises
+  if (_args.promises) {
+    _args.promises = asArray(_args.promises).map(underpromise.asPromise);
+  }
+  
   return _args;
 };
 
@@ -48,6 +53,10 @@ underpromise.promise = function (fn) {
 
 underpromise.asPromise = function (value) {
   return Promise.from(value);
+};
+
+underpromise.all = function () {
+  return Promise.all.apply(Promise, asArray(arguments));
 };
 
 underpromise.partial = function () {
@@ -137,7 +146,7 @@ underpromise._method('reduce', function (args) {
     
     underpromise.each(function (promise, resolve, reject, idx) {
       args.fn(accum, promise, function (val) {
-        accum = Promise.from(val);
+        accum = underpromise.asPromise(val);
         resolve();
       }, reject, idx);
     }, args.promises).then(function () {
