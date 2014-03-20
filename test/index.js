@@ -739,7 +739,10 @@ describe.only('objects', function () {
       key1: 'value3'
     });
     
-    _.extend(promise, promiseExtension).then(function (obj) {
+    // OOOHHH partial-like
+    var extend = _.extend(promise);
+    
+    extend(promiseExtension).then(function (obj) {
       expect(obj).to.eql({
         key1: 'value3',
         key2: 'value2'
@@ -765,7 +768,7 @@ describe.only('objects', function () {
         key2: 'value2'
       });
       done();
-    }).done();
+    }).done();n
   });
   
   it('#pick()');

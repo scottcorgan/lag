@@ -10,9 +10,23 @@ var underpromise = {
   _functionFirst: true
 };
 
+// (fn, promise) syntax
 underpromise._method = function (name, fn) {
   var method = this[name] = this._partialize(fn);
   return method;
+};
+
+// unlimted arguments syntax, but only one passed to initial partial
+underpromise._partializedMethod = function (name, fn) {
+  return underpromise[name] = function () {
+    if (arguments.length === 1) {
+      return underpromise.partial(function () {
+        return underpromise[name].apply(null, asArray(arguments));
+      }, arguments[0]);
+    }
+    
+    return fn.apply(null, asArray(arguments));
+  };
 };
 
 underpromise._args = function (args) {
@@ -339,14 +353,13 @@ underpromise.values = function (promise) {
     });
 };
 
-underpromise.extend = function (promise) {
+underpromise._partializedMethod('extend', function () {
   return underpromise
     .map(underpromise.identity, flatten(arguments))
     .then(function (objects) {
-      return underpromise
-        .asPromise(extend.apply(null, objects));
+      return underpromise.asPromise(extend.apply(null, objects));
     });
-};
+});
 
 // Utilities
 
