@@ -10,8 +10,10 @@ TODO
 ==============
 - angular support
 
-* each vs eachSeries
-- map vs mapSeries
+* return a promise instead
+
+x each vs eachSeries
+* map vs mapSeries
 
 utilities
 =====================
@@ -208,20 +210,7 @@ describe('arrays', function () {
     var iterate = _.each(function (promise, resolve, reject, idx) {
       iterator += 1;
       return promise;
-      // promise.then(function (val) {
-      //  iterator += 1;
-      //   expect(idx).to.equal(iterator);
-      //   resolve('this argument does nothing'); 
-      // }).done();
     });
-    
-    // var iterate = _.each(function (promise, resolve, reject, idx) {
-    //   promise.then(function (val) {
-    //     expect(idx).to.equal(iterator);
-    //     iterator += 1;
-    //     resolve('this argument does nothing'); 
-    //   }).done();
-    // });
     
     iterate(promises).then(function () {
       expect(iterator).to.equal(2);
@@ -229,7 +218,7 @@ describe('arrays', function () {
     }).done();
   });
   
-  it.only('#eachSeries()', function (done) {
+  it('#eachSeries()', function (done) {
     var called123 = false;
     var called456 = false
     var promise123 = _.promise(function (resolve, reject) {
@@ -255,20 +244,6 @@ describe('arrays', function () {
           resolve();
         }).done();
       });
-      
-      // promise.then(function (val) {
-      //   if (val == 123) {
-      //     called123 = true;
-      //     expect(called456).to.equal(false);
-      //   }
-        
-      //   if (val == 456) {
-      //     called456 = true;
-      //     expect(called123).to.equal(true);
-      //   }
-        
-      //   resolve();
-      // }).done();
     }, [promise123, promise456]).then(function () {
       expect(called123).to.equal(true);
       expect(called456).to.equal(true);
@@ -282,14 +257,50 @@ describe('arrays', function () {
       Promise.from(456)
     ];
     
-    _.map(function (promise, resolve, reject, idx) {
-      promise.then(function (val) {
-        resolve(val + 1);
+    _.map(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (val) {
+          resolve(val +1);
+        });
       });
     }, promises).then(function (res) {
       expect(res).to.eql([124, 457]);
       done();
-    }).done();    
+    }).done();
+  });
+  
+  it.only('#mapSeries', function (done) {
+    var called123 = false;
+    var called456 = false;
+    
+    var promises = [
+      _.promise(function (resolve) {
+        setTimeout(function () {
+          resolve(123);
+        }, 0);
+      }),
+      _.asPromise(456)
+    ];
+    
+    _.mapSeries(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (val) {
+          if (val === 123) called123 = true;
+          if (val === 456) called456 = true;
+          
+          if (val === 456) {
+            expect(called123).to.equal(true);
+          }
+          
+          resolve(val +1);
+        });
+      }, done);
+    }, promises).then(function (res) {
+      expect(res).to.eql([124, 457]);
+      expect(called123).to.equal(true);
+      expect(called456).to.equal(true);
+      done();
+    }).done();
   });
   
   it('#reduce()', function (done) {

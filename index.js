@@ -117,9 +117,6 @@ underpromise.functionFirst = function () {
 underpromise._method('each', function (args) {
   var eachPromises = args.promises.map(function (promise, idx) {
     return args.fn(promise);
-    // return underpromise.promise(function (resolve, reject) {
-      // args.fn(promise, resolve, reject ,idx);
-    // });
   });
   
   return underpromise.all(eachPromises);  
@@ -130,9 +127,6 @@ underpromise._method('eachSeries', function (args) {
   var promises = args.promises.map(function (promise, idx) {
     return currentPromise = currentPromise.then(function () {
       return args.fn(promise, idx);
-      // return underpromise.promise(function (resolve, reject) {
-      //   args.fn(promise, resolve, reject, idx);
-      // });
     })
   });
     
@@ -144,11 +138,20 @@ underpromise._method('map', function (args) {
   return underpromise.promise(function (resolve, reject) {
     var mapped = [];
     
-    underpromise.each(function (promise, resolve, reject, idx) {
-      args.fn(promise, function (value) {
-        mapped.push(value);
-        resolve();
-      }, reject, idx);
+    underpromise.each(function (promise, idx) {
+      return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
+    }, args.promises).then(function () {
+      resolve(mapped);
+    }, reject);
+  });
+});
+
+underpromise._method('mapSeries', function (args) {
+  return underpromise.promise(function (resolve, reject) {
+    var mapped = [];
+    
+    underpromise.eachSeries(function (promise, idx) {
+      return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
     }, args.promises).then(function () {
       resolve(mapped);
     }, reject);
