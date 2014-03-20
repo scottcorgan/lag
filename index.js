@@ -80,6 +80,11 @@ underpromise.promiseFirst = function () {
   underpromise._functionFirst = false;
 };
 
+underpromise.functionFirst = function () {
+  underpromise._promiseFirst = false;
+  underpromise._functionFirst = true;
+};
+
 // Arrays
 
 underpromise._method('each', function (args) {
