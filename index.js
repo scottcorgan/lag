@@ -69,6 +69,10 @@ underpromise.partial = function () {
   };
 };
 
+underpromise.identity = function () {
+  return arguments[0];
+};
+
 underpromise.compose = function () {
   var fns = asArray(arguments).reverse();
   
@@ -134,39 +138,33 @@ underpromise._method('eachSeries', function (args) {
 });
 
 
-underpromise._method('map', function (args) {
-  return underpromise.promise(function (resolve, reject) {
-    var mapped = [];
-    
-    underpromise.each(function (promise, idx) {
-      return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
-    }, args.promises).then(function () {
-      resolve(mapped);
-    }, reject);
+['map', 'mapSeries'].forEach(function (name) {
+  underpromise._method(name, function (args) {
+    return underpromise.promise(function (resolve, reject) {
+      var mapped = [];
+      var each = (name === 'map') ? 'each' : 'eachSeries';
+      
+      underpromise[each](function (promise, idx) {
+        return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
+      }, args.promises).then(function () {
+        underpromise.all(mapped).then(resolve);
+      }, reject);
+    });
   });
 });
 
-underpromise._method('mapSeries', function (args) {
-  return underpromise.promise(function (resolve, reject) {
-    var mapped = [];
-    
-    underpromise.eachSeries(function (promise, idx) {
-      return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
-    }, args.promises).then(function () {
-      resolve(mapped);
-    }, reject);
-  });
-});
 
 underpromise._method('reduce', function (args) {
   return underpromise.promise(function (resolve, reject) {
     var accum = args.promises.shift();
     
-    underpromise.each(function (promise, resolve, reject, idx) {
-      args.fn(accum, promise, function (val) {
-        accum = underpromise.asPromise(val);
-        resolve();
-      }, reject, idx);
+    underpromise.eachSeries(function (promise, idx) {
+      return underpromise.promise(function (resolve, reject) {
+        args.fn(accum, promise, idx).then(function (val) {
+          accum = underpromise.asPromise(val);
+          resolve();
+        }, reject);
+      });
     }, args.promises).then(function () {
       resolve(accum);
     }, reject);
@@ -174,44 +172,36 @@ underpromise._method('reduce', function (args) {
 });
 
 underpromise._method('reduceRight', function (args) {
-  return underpromise.reduce({
-    fn: args.fn,
-    promises: args.promises.reverse()
-  });
+  args.promises = args.promises.reverse();
+  return underpromise.reduce(args);
 });
 
 underpromise._method('filter', function (args) {
   return underpromise.promise(function (resolve, reject) {
     var filtered = [];
     
-    underpromise.each(function (promise, resolve, reject, idx) {
-      args.fn(promise, function (passed) {
+    underpromise.each(function (promise, idx) {
+      return args.fn(promise, idx).then(function (passed) {
         if (passed) filtered.push(promise);
-        resolve();
-      }, reject, idx);
+      }, reject);
     }, args.promises).then(function () {
-      resolve(Promise.all(filtered));
+      underpromise.all(filtered).then(resolve);
     }, reject);
   });
 });
 
+
 underpromise._method('find', function (args) {
   return underpromise.promise(function (resolve, reject) {
-    var wantedPromise;
+    var wanted;
     
-    underpromise.each(function (promise, _resolve, reject, idx, _exit) {
-      args.fn(promise, function (passed) {
-        if (passed) {
-          wantedPromise = promise;
-          _exit();
-        }
-        else{
-          _resolve();
-        }
-      }, reject, idx);
-    }, args.promises).then(function () {
-      resolve(wantedPromise);
-    }, reject);
+    // TODO: make the eachSeries stop after value passes fn test
+    
+    underpromise.eachSeries(function (promise, idx) {
+      return args.fn(promise, idx).then(function (passed) {
+        if (passed && !wanted) resolve(promise);
+      }, reject);
+    }, args.promises);
   });
 });
 
@@ -219,7 +209,7 @@ underpromise._method('find', function (args) {
 
 underpromise._method('pluck', function (args) {
   return underpromise.promise(function (resolve, reject) {
-    Promise.all(args.promises).then(function (res) {
+    underpromise.all(args.promises).then(function (res) {
       resolve(res.map(function (obj) {
         return obj[args.fn];
       }));

@@ -11,9 +11,7 @@ TODO
 - angular support
 
 * return a promise instead
-
-x each vs eachSeries
-* map vs mapSeries
+* parallel and series all that need to be
 
 utilities
 =====================
@@ -110,14 +108,14 @@ describe('basic promising', function () {
     });
   });
   
+  it('returns the first argument with identity', function () {
+    var arg = _.identity(123);
+    expect(arg).to.equal(123);
+  });
+  
   it('turns non promise arguments into promises', function (done) {
-    var partialMap = _.map(function (promise, resolve) {
-      promise.then(resolve);
-    });
-    
-    var fullMap = _.map(function (promise, resolve) {
-      promise.then(resolve);
-    }, [4,5,6]);
+    var partialMap = _.map(_.identity);
+    var fullMap = _.map(_.identity, [4,5,6]);
     
     _.all(partialMap([1,2,3]), fullMap).then(function (results) {
       expect(results[0]).to.eql([1,2,3]);
@@ -135,21 +133,27 @@ describe('basic promising', function () {
       _.asPromise('c')
     ];
     
-    var dash = _.map(function (promise, resolve) {
-      promise.then(function (letter) {
-        resolve('-' + letter + '-');
+    var dash = _.map(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (letter) {
+          resolve('-' + letter + '-');
+        }, reject);
       });
     });
     
-    var find = _.find(function (promise, resolve) {
-      promise.then(function (letter) {
-        resolve(letter === '-a-');
+    var find = _.find(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (letter) {
+          resolve(letter === '-a-');
+        });
       });
     });
     
-    var yell = _.map(function (promise, resolve) {
-      promise.then(function (letter) {
-        resolve(letter + '!!!');
+    var yell = _.map(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (letter) {
+          resolve(letter + '!!!');
+        });
       });
     });
     
@@ -163,25 +167,33 @@ describe('basic promising', function () {
   });
   
   it('composes multiple promise methods', function (done) {
-    var map = _.map(function (promise, resolve) {
-      promise.then(function (val) {
-        resolve('0' + val);
+    var map = _.map(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (val) {
+          resolve('0' + val);
+        });
       });
     });
-    var find = _.find(function (promise, resolve) {
-      promise.then(function (val) {
-        resolve(val === '0123');
+    var find = _.find(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (val) {
+          resolve(val === '0123');
+        });
       });
     });
-    var yell = _.map(function (promise, resolve) {
-      promise.then(function (val) {
-        resolve(val + '!');
+    var yell = _.map(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (val) {
+          resolve(val + '!');
+        });
       });
     });
-    var reverse = _.map(function (promise, resolve) {
-      promise.then(function (val) {
-        var arr = val.split('');
-        resolve(arr.reverse().join(''));
+    var reverse = _.map(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (val) {
+          var arr = val.split('');
+          resolve(arr.reverse().join(''));
+        });
       });
     });
     var weird = _.compose(yell, reverse, find, map);
@@ -269,7 +281,7 @@ describe('arrays', function () {
     }).done();
   });
   
-  it.only('#mapSeries', function (done) {
+  it('#mapSeries', function (done) {
     var called123 = false;
     var called456 = false;
     
@@ -311,11 +323,13 @@ describe('arrays', function () {
     ];
     
     // Adds all the numbers in the promises together
-    _.reduce(function (prevPromise, currPromise, resolve, reject, idx) {
-      Promise.all(prevPromise, currPromise).then(function (res) {
-        resolve(res.reduce(function (memo, val) {
-          return memo + val;
-        }));
+    _.reduce(function (prevPromise, currPromise) {
+      return _.promise(function (resolve) {
+        Promise.all(prevPromise, currPromise).then(function (res) {
+          resolve(res.reduce(function (memo, val) {
+            return memo + val;
+          }));
+        });
       });
     }, promises).then(function (result) {
       expect(result).to.equal('abc');
@@ -331,11 +345,13 @@ describe('arrays', function () {
     ];
     
     // Adds all the numbers in the promises together
-    _.reduceRight(function (prevPromise, currPromise, resolve, reject, idx) {
-      Promise.all(prevPromise, currPromise).then(function (res) {
-        resolve(res.reduce(function (memo, val) {
-          return memo + val;
-        }));
+    _.reduceRight(function (prevPromise, currPromise) {
+      return _.promise(function (resolve) {
+        Promise.all(prevPromise, currPromise).then(function (res) {
+          resolve(res.reduce(function (memo, val) {
+            return memo + val;
+          }));
+        });
       });
     }, promises).then(function (result) {
       expect(result).to.equal('cba');
@@ -350,9 +366,11 @@ describe('arrays', function () {
       Promise.from(789)
     ];
     
-    _.filter(function (promise, resolve, reject, idx) {
-      promise.then(function (num) {
-        resolve(num < 200);
+    _.filter(function (promise, idx) {
+      return _.promise(function (resolve) {
+        promise.then(function (num) {
+          resolve(num < 200);
+        });
       });
     }, promises).then(function (res) {
       expect(res.length).to.equal(1);
@@ -361,6 +379,8 @@ describe('arrays', function () {
     }).done();
   });
   
+  it('#filterSeries()')
+  
   it('find', function (done) {
     var promises = [
       Promise.from(123),
@@ -368,15 +388,25 @@ describe('arrays', function () {
       Promise.from(789)
     ];
     
-    _.find(function (promise, resolve, reject, idx) {
-      promise.then(function (num) {
-        resolve(num < 200);
+    _.find(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (num) {
+          resolve(num < 200);
+        }, reject);
       });
     }, promises).then(function (res) {
       expect(res).to.equal(123);
       done();
     }).done();
   });
+  
+  it('#findSeries')
+  
+  it('#compact()') // (remove all falsey values)
+  it('#first()');
+  it('#initial()');
+  it('#last()');
+  it('#rest()');
   
 });
 
