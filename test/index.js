@@ -123,6 +123,15 @@ describe('basic promising', function () {
     });
   });
   
+  it('#inverseBoolean()', function () {
+    var bool = _.inverseBoolean('string');
+    
+    bool.then(function (val) {
+      expect(bool).to.strictEqal(false);
+      done();
+    });
+  });
+  
   it('turns non promise arguments into promises', function (done) {
     var partialMap = _.map(_.identity);
     var fullMap = _.map(_.identity, [4,5,6]);
@@ -414,6 +423,57 @@ describe('arrays', function () {
     }, promises).then(function (res) {
       expect(res.length).to.equal(1);
       expect(res[0]).to.equal(123);
+      expect(called123).to.equal(true);
+      expect(called456).to.equal(true);
+      done();
+    }).done();
+  });
+  
+  it('#reject(), opposite of filter', function (done) {
+    var promises = [
+      _.asPromise(123),
+      _.asPromise(456),
+      _.asPromise(789)
+    ];
+    
+    _.reject(function (promise, idx) {
+      return _.promise(function (resolve) {
+        promise.then(function (num) {
+          resolve(num < 600);
+        });
+      });
+    }, promises).then(function (res) {
+      expect(res.length).to.equal(1);
+      expect(res[0]).to.equal(789);
+      done();
+    }).done();
+  });
+  
+  it('#rejectSeries()', function (done) {
+    var called123 = false;
+    var called456 = false;
+    var promises = [
+      _.promise(function (resolve) {
+        setTimeout(function () {
+          resolve(123);
+        }, 0);
+      }),
+      _.asPromise(456)
+    ];
+    
+    _.rejectSeries(function (promise, idx) {
+      return _.promise(function (resolve) {
+        promise.then(function (num) {
+          if (num == 123) called123 = true;
+          if (num == 456) called456 = true;
+          if (num == 456) expect(called123).to.equal(true);
+          
+          resolve(num < 200);
+        }).done();
+      });
+    }, promises).then(function (res) {
+      expect(res.length).to.equal(1);
+      expect(res[0]).to.equal(456);
       expect(called123).to.equal(true);
       expect(called456).to.equal(true);
       done();

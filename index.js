@@ -71,11 +71,17 @@ underpromise.identity = function () {
 };
 
 underpromise.boolean = function (promise) {
-  return underpromise.promise(function (resolve, reject) {
-    underpromise.asPromise(promise).then(function (val) {
-      resolve(!!val);
-    }, reject);
+  return underpromise.asPromise(promise).then(function (val) {
+    return underpromise.asPromise(!!val);
   });
+};
+
+underpromise.inverseBoolean = function (promise) {
+  return underpromise.asPromise(promise)
+    .then(underpromise.boolean)
+    .then(function (val) {
+      return underpromise.asPromise(!val);
+    });
 };
 
 underpromise.compose = function () {
@@ -197,6 +203,18 @@ underpromise._method('reduceRight', function (args) {
     });
   });
 });
+
+['reject', 'rejectSeries'].forEach(function (name) {
+  underpromise._method(name, function (args) {
+    var filter = (name === 'reject') ? 'filter' : 'filterSeries';
+    
+    return underpromise[filter](function (promise, idx) {
+      return args.fn(promise, idx)
+        .then(underpromise.inverseBoolean);
+    }, args.promises);
+  });
+});
+
 
 ['find', 'findSeries'].forEach(function (name) {
   underpromise._method(name, function (args) {
