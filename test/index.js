@@ -1,4 +1,5 @@
 var expect = require('expect.js');
+var sinon = require('sinon');
 var _ = require('../');
 var clone = require('clone');
 var Promise = require('promise');
@@ -13,6 +14,7 @@ TODO
 
 utilities
 =====================
+- log
 
 collections
 ===================
@@ -24,6 +26,7 @@ collections
 - sortBy
 - indexBy
 - countyBy
+- at
 
 Objects ?? these will only work for a single promise;
 ==============================
@@ -676,6 +679,7 @@ describe('collections', function () {
     }).done();
   });
   
+  // TODO: make contains take an array of values
   it('#contains()', function (done) {
     var promises = [
       _.asPromise('abc'),
@@ -693,5 +697,20 @@ describe('collections', function () {
   it('#sortBy()');
   it('#indexBy()');
   it('#countBy()');
+  
+});
+
+describe('utilities', function () {
+  
+  it('#equal()', function (done) {
+    var promise1 = _.asPromise(1);
+    var promise2 = _.asPromise(2);
+    
+    _.equal(promise1, promise2).then(function (isEqual) {
+      expect(isEqual).to.equal(false);
+      done();
+    }).done();
+    
+  });
   
 });

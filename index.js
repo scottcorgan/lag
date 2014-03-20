@@ -311,12 +311,25 @@ underpromise._method('contains', function (args) {
   var value = args.fn;
   
   return underpromise
-    .find(function (promise, idx) {
-      return promise.then(function (_val) {
-        return underpromise.asPromise(_val === value);
-      });
-    }, args.promises)
+    .find(underpromise.equal(value), args.promises)
     .then(underpromise.boolean);
 });
+
+// Utilities
+
+underpromise._method('equal', function (args) {
+  return underpromise
+    .all(args.fn, args.promises[0])
+    .then(function (values) {
+      return underpromise.asPromise(values[0] === values[1]);
+    });
+});
+
+underpromise.log = function (promise) {
+  return promise.then(function (val) {
+    console.log(val);
+    return underpromise.asPromise(val);
+  });
+};
 
 module.exports = underpromise;
