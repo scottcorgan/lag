@@ -69,6 +69,29 @@ underpromise.partial = function () {
   };
 };
 
+underpromise.compose = function (yell, find, map) {
+  var fns = asArray(arguments).reverse();
+  
+  return function (promises) {
+    return underpromise.promise(function (resolve, reject) {
+      nextFn(promises)
+
+      function nextFn (promises) {
+        var fn = fns.shift();
+        
+        if (!fn) resolve(underpromise.asPromise(promises));
+        
+        return underpromise.promise(function (resolve, reject) {
+          fn(promises).then(function (res) {
+            nextFn(res);
+          }, reject);
+        });
+      }
+    });
+    
+  };
+};
+
 underpromise._partialize = function (callback) {
   return function () {
     var args = underpromise._args(arguments);
