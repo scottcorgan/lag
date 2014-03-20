@@ -28,7 +28,8 @@
     "promise": "^4.0.0",
     "is-promise": "^1.0.0",
     "tap-spec": "^0.1.5",
-    "tape": "^2.10.2"
+    "tape": "^2.10.2",
+    "clone": "^0.1.11"
   },
   "dependencies": {
     "promise": "^4.0.0",

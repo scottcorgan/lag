@@ -1,30 +1,65 @@
 var _ = require('../');
-var test = require('tapes');
+var clone = require('clone');
+// var test = require('tapes');
+var test = require('tape');
 var Promise = require('promise');
 var isPromise = require('is-promise');
 
-test('creating promises', function (t) {
-  t.plan(2);
+// test('creating promises', function (t) {
+//   t.plan(2);
   
-  var promise1 = _.promise();
-  t.ok(isPromise(promise1), 'creates promise');
+//   var promise1 = _.promise();
+//   t.ok(isPromise(promise1), 'creates promise');
   
-  var promise2 = _.asPromise(123);
-  promise2.then(function (val) {
-    t.equal(val, 123, 'creates promise from a value');
-  });
-});
+//   var promise2 = _.asPromise(123);
+//   promise2.then(function (val) {
+//     t.equal(val, 123, 'creates promise from a value');
+//   });
+// });
 
-test('partially applies functions and arguments', function (t) {
-  var activity = function (arg1, arg2) {
-    t.equal(arg1, 'arg1', 'passed the first argument');
-    t.equal(arg2, 'arg2', 'passed the second argument');
-    t.end();
-  };
+// test('partially applies functions and arguments', function (t) {
+//   var activity = function (arg1, arg2) {
+//     t.equal(arg1, 'arg1', 'passed the first argument');
+//     t.equal(arg2, 'arg2', 'passed the second argument');
+//     t.end();
+//   };
   
-  var doThis = _.partial(activity, 'arg1');
-  doThis('arg2');
-});
+//   var doThis = _.partial(activity, 'arg1');
+//   doThis('arg2');
+// });
+
+// test('call method with object of arguments', function (t) {
+//   var promise = _.promise(function (resolve) {
+//     resolve({
+//       key: 'value'
+//     });
+//   });
+  
+//   _.pluck({
+//     fn: 'key',
+//     promises: promise
+//   }).then(function (val) {
+//     t.deepEqual(val, ['value'], 'plucked value with object passed to method');
+//     t.end();
+//   });
+// });
+
+// test('customize order each method argument is passed to the method', function (t) {
+//   var __ = clone(_);
+//   __.promiseFirst();
+//   // _.functionFirst(); // TODO: this
+  
+//   var promise = __.promise(function (resolve) {
+//     resolve({
+//       key: 'value'
+//     });
+//   });
+  
+//   __.pluck(promise, 'key').then(function (val) {
+//     t.deepEqual(val, ['value'], 'plucked value with promises first');
+//     t.end();
+//   });
+// });
 
 test('arrays', function (t) {
   test('each', function (t) {
@@ -41,7 +76,7 @@ test('arrays', function (t) {
         t.equal(idx, iterator, 'passes in the index');
         resolve('this argument does nothing'); 
       });
-    })
+    });
     
     iterate(promises).then(function () {
       t.equal(iterator, 2, 'loops through each promise');
@@ -49,126 +84,126 @@ test('arrays', function (t) {
     });
   });
   
-  test('map', function (t) {
-    var promises = [
-      Promise.from(123),
-      Promise.from(456)
-    ];
+  // test('map', function (t) {
+  //   var promises = [
+  //     Promise.from(123),
+  //     Promise.from(456)
+  //   ];
     
-    _.map(function (promise, resolve, reject, idx) {
-      promise.then(function (val) {
-        resolve(val + 1);
-      });
-    }, promises).then(function (res) {
-      t.deepEqual(res, [124, 457], 'mapped array of promises');
-      t.end();
-    });
+  //   _.map(function (promise, resolve, reject, idx) {
+  //     promise.then(function (val) {
+  //       resolve(val + 1);
+  //     });
+  //   }, promises).then(function (res) {
+  //     t.deepEqual(res, [124, 457], 'mapped array of promises');
+  //     t.end();
+  //   });
     
-    test('is partialized', function (t) {
-      var fn = _.map();
-      t.equal(typeof fn, 'function', 'partialized');
-      t.end();
-    });
-  });
+  //   test('is partialized', function (t) {
+  //     var fn = _.map();
+  //     t.equal(typeof fn, 'function', 'partialized');
+  //     t.end();
+  //   });
+  // });
   
-  test('reduce', function (t) {
-    var promises = [
-      Promise.from('a'),
-      Promise.from('b'),
-      Promise.from('c')
-    ];
+  // test('reduce', function (t) {
+  //   var promises = [
+  //     Promise.from('a'),
+  //     Promise.from('b'),
+  //     Promise.from('c')
+  //   ];
     
-    // Adds all the numbers in the promises together
-    _.reduce(function (prevPromise, currPromise, resolve, reject, idx) {
-      Promise.all(prevPromise, currPromise).then(function (res) {
-        resolve(res.reduce(function (memo, val) {
-          return memo + val;
-        }));
-      });
-    }, promises).then(function (result) {
-      t.equal(result, 'abc', 'reduces array of promises');
-      t.end();
-    });
+  //   // Adds all the numbers in the promises together
+  //   _.reduce(function (prevPromise, currPromise, resolve, reject, idx) {
+  //     Promise.all(prevPromise, currPromise).then(function (res) {
+  //       resolve(res.reduce(function (memo, val) {
+  //         return memo + val;
+  //       }));
+  //     });
+  //   }, promises).then(function (result) {
+  //     t.equal(result, 'abc', 'reduces array of promises');
+  //     t.end();
+  //   });
     
-    test('is partialized', function (t) {
-      var fn = _.reduce();
-      t.equal(typeof fn, 'function', 'partialized');
-      t.end();
-    });
-  });
+  //   test('is partialized', function (t) {
+  //     var fn = _.reduce();
+  //     t.equal(typeof fn, 'function', 'partialized');
+  //     t.end();
+  //   });
+  // });
   
-  test('reduceRight', function (t) {
-    var promises = [
-      Promise.from('a'),
-      Promise.from('b'),
-      Promise.from('c')
-    ];
+  // test('reduceRight', function (t) {
+  //   var promises = [
+  //     Promise.from('a'),
+  //     Promise.from('b'),
+  //     Promise.from('c')
+  //   ];
     
-    // Adds all the numbers in the promises together
-    _.reduceRight(function (prevPromise, currPromise, resolve, reject, idx) {
-      Promise.all(prevPromise, currPromise).then(function (res) {
-        resolve(res.reduce(function (memo, val) {
-          return memo + val;
-        }));
-      });
-    }, promises).then(function (result) {
-      t.equal(result, 'cba', 'reduceRights array of promises');
-      t.end();
-    });
+  //   // Adds all the numbers in the promises together
+  //   _.reduceRight(function (prevPromise, currPromise, resolve, reject, idx) {
+  //     Promise.all(prevPromise, currPromise).then(function (res) {
+  //       resolve(res.reduce(function (memo, val) {
+  //         return memo + val;
+  //       }));
+  //     });
+  //   }, promises).then(function (result) {
+  //     t.equal(result, 'cba', 'reduceRights array of promises');
+  //     t.end();
+  //   });
     
-    test('is partialized', function (t) {
-      var fn = _.reduceRight();
-      t.equal(typeof fn, 'function', 'partialized');
-      t.end();
-    });
-  });
+  //   test('is partialized', function (t) {
+  //     var fn = _.reduceRight();
+  //     t.equal(typeof fn, 'function', 'partialized');
+  //     t.end();
+  //   });
+  // });
   
-  test('filter', function (t) {
-    var promises = [
-      Promise.from(123),
-      Promise.from(456),
-      Promise.from(789)
-    ];
+  // test('filter', function (t) {
+  //   var promises = [
+  //     Promise.from(123),
+  //     Promise.from(456),
+  //     Promise.from(789)
+  //   ];
     
-    _.filter(function (promise, resolve, reject, idx) {
-      promise.then(function (num) {
-        resolve(num < 200);
-      });
-    }, promises).then(function (res) {
-      t.equal(res.length, 1, 'filtered promsies');
-      t.equal(res[0], 123, 'promise value');
-      t.end();
-    });
+  //   _.filter(function (promise, resolve, reject, idx) {
+  //     promise.then(function (num) {
+  //       resolve(num < 200);
+  //     });
+  //   }, promises).then(function (res) {
+  //     t.equal(res.length, 1, 'filtered promsies');
+  //     t.equal(res[0], 123, 'promise value');
+  //     t.end();
+  //   });
     
-    test('is partialized', function (t) {
-      var fn = _.filter();
-      t.equal(typeof fn, 'function', 'partialized');
-      t.end();
-    });
-  });
+  //   test('is partialized', function (t) {
+  //     var fn = _.filter();
+  //     t.equal(typeof fn, 'function', 'partialized');
+  //     t.end();
+  //   });
+  // });
   
-  test('find', function (t) {
-    var promises = [
-      Promise.from(123),
-      Promise.from(456),
-      Promise.from(789)
-    ];
+  // test('find', function (t) {
+  //   var promises = [
+  //     Promise.from(123),
+  //     Promise.from(456),
+  //     Promise.from(789)
+  //   ];
     
-    _.find(function (promise, resolve, reject, idx) {
-      promise.then(function (num) {
-        resolve(num < 200);
-      });
-    }, promises).then(function (res) {
-      t.equal(res, 123, 'found value');
-      t.end();
-    });
+  //   _.find(function (promise, resolve, reject, idx) {
+  //     promise.then(function (num) {
+  //       resolve(num < 200);
+  //     });
+  //   }, promises).then(function (res) {
+  //     t.equal(res, 123, 'found value');
+  //     t.end();
+  //   });
     
-    test('is partialized', function (t) {
-      var fn = _.find();
-      t.equal(typeof fn, 'function', 'partialized');
-      t.end();
-    });
-  });
+  //   test('is partialized', function (t) {
+  //     var fn = _.find();
+  //     t.equal(typeof fn, 'function', 'partialized');
+  //     t.end();
+  //   });
+  // });
   
   t.end();
 });
@@ -208,9 +243,10 @@ test('collections', function (t) {
   });
   
   // TODO: 
-  // * partially apply each method
-  // - ability to switch order of arguments
-  //   - via args.fn, args.promises, etc.
+  // x partially apply each method
+  // * ability to switch order of arguments
+  //   x via args.fn, args.promises, etc.
+  //   x add method to call _ method with array object for arguments (for reduceRight)
   // - angular support
   
   /*
