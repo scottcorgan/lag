@@ -1,8 +1,6 @@
 var Promise = require('promise');
 var isPromise = require('is-promise');
 var asArray = require('as-array');
-var drainer = require('drainer');
-var callbacker = require('callbacker');
 
 var underpromise = {
   _promiseFirst: false,
