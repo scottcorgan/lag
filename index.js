@@ -73,6 +73,14 @@ underpromise.identity = function () {
   return arguments[0];
 };
 
+underpromise.boolean = function (promise) {
+  return underpromise.promise(function (resolve, reject) {
+    underpromise.asPromise(promise).then(function (val) {
+      resolve(!!val);
+    }, reject);
+  });
+};
+
 underpromise.compose = function () {
   var fns = asArray(arguments).reverse();
   
@@ -206,6 +214,8 @@ underpromise._method('find', function (args) {
     }, args.promises);
   });
 });
+
+underpromise.compact = underpromise.filter(underpromise.identity);
 
 // Collections
 

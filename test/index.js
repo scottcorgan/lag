@@ -108,9 +108,21 @@ describe('basic promising', function () {
     });
   });
   
-  it('returns the first argument with identity', function () {
-    var arg = _.identity(123);
-    expect(arg).to.equal(123);
+  it('#identity()', function (done) {
+    var arg = _.identity(_.asPromise(123));
+    arg.then(function (val) {
+      expect(val).to.equal(123);
+      done();
+    });
+  });
+  
+  it('#boolean()', function () {
+    var bool = _.boolean('string');
+    
+    bool.then(function (val) {
+      expect(bool).to.strictEqal(true);
+      done();
+    });
   });
   
   it('turns non promise arguments into promises', function (done) {
@@ -434,7 +446,22 @@ describe('arrays', function () {
   
   it('#findSeries')
   
-  it('#compact()') // (remove all falsey values)
+  // (remove all falsey values)
+  it('#compact()', function (done) {
+    var promises = [
+      _.asPromise(123),
+      _.asPromise(false),
+      _.asPromise(null),
+      _.asPromise(456),
+      _.asPromise(undefined)
+    ];
+    
+    _.compact(promises).then(function (values) {
+      expect(values).to.eql([123, 456]);
+      done();
+    }).done();
+  }); 
+  
   it('#first()');
   it('#initial()');
   it('#last()');
