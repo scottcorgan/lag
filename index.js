@@ -69,23 +69,19 @@ underpromise.partial = function () {
   };
 };
 
-underpromise.compose = function (yell, find, map) {
+underpromise.compose = function () {
   var fns = asArray(arguments).reverse();
   
   return function (promises) {
     return underpromise.promise(function (resolve, reject) {
-      nextFn(promises)
+      runFunction(promises)
 
-      function nextFn (promises) {
+      function runFunction (promises) {
         var fn = fns.shift();
         
-        if (!fn) resolve(underpromise.asPromise(promises));
-        
-        return underpromise.promise(function (resolve, reject) {
-          fn(promises).then(function (res) {
-            nextFn(res);
-          }, reject);
-        });
+        return fn
+          ? fn(promises).then(runFunction, reject)
+          : resolve(underpromise.asPromise(promises));
       }
     });
     
