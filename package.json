@@ -34,6 +34,9 @@
   "dependencies": {
     "promise": "^4.0.0",
     "is-promise": "^1.0.0",
-    "as-array": "^0.1.2"
+    "as-array": "^0.1.2",
+    "extend": "^1.2.1",
+    "flat-arguments": "^0.3.0",
+    "defaults": "^1.0.0"
   }
 }

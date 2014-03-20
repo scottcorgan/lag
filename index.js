@@ -1,6 +1,9 @@
 var Promise = require('promise');
 var isPromise = require('is-promise');
 var asArray = require('as-array');
+var extend = require('extend');
+var defaults = require('defaults');
+var flatten = require('flat-arguments');
 
 var underpromise = {
   _promiseFirst: false,
@@ -248,7 +251,7 @@ underpromise._method('reduceRight', function (args) {
 underpromise.compact = underpromise.filter(underpromise.boolean);
 
 underpromise.first = function (promises) {
-  return underpromise.asPromise(promises.shift());
+  return underpromise.asPromise(asArray(promises).shift());
 };
 
 underpromise.last = function (promises) {
@@ -314,6 +317,36 @@ underpromise._method('contains', function (args) {
     .find(underpromise.equal(value), args.promises)
     .then(underpromise.boolean);
 });
+
+// Objects
+
+underpromise.keys = function (promise) {
+  return underpromise.first(promise)
+    .then(function (obj) {
+      return underpromise.asPromise(Object.keys(obj));
+    });
+};
+
+
+underpromise.values = function (promise) {
+  return underpromise.first(promise)
+    .then(function (obj) {
+      var values = Object.keys(obj).map(function (key) {
+        return obj[key];
+      });
+    
+      return underpromise.asPromise(values);
+    });
+};
+
+underpromise.extend = function (promise) {
+  return underpromise
+    .map(underpromise.identity, flatten(arguments))
+    .then(function (objects) {
+      return underpromise
+        .asPromise(extend.apply(null, objects));
+    });
+};
 
 // Utilities
 

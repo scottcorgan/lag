@@ -18,9 +18,6 @@ utilities
 
 collections
 ===================
-- every
-- some
-- contains
 - max
 - min
 - sortBy
@@ -698,6 +695,90 @@ describe('collections', function () {
   it('#indexBy()');
   it('#countBy()');
   
+});
+
+describe.only('objects', function () {
+  
+  it('#keys()', function (done) {
+    var obj = {
+      key1: 'value',
+      key2: 'value'
+    };
+    
+    var promise = _.asPromise(obj);
+    
+    _.keys(promise).then(function (keys) {
+      expect(keys).to.eql(Object.keys(obj));
+      done();
+    }).done();
+  });
+  
+  it('#values()', function (done) {
+    var obj = {
+      key1: 'value1',
+      key2: 'value2'
+    };
+    
+    var promise = _.asPromise(obj);
+    
+    _.values(promise).then(function (values) {
+      expect(values).to.eql(['value1', 'value2']);
+      done();
+    }).done();
+  });
+  
+  
+  it('#extend()', function (done) {
+    var obj = {
+      key1: 'value1',
+      key2: 'value2'
+    };
+    
+    var promise = _.asPromise(obj);
+    var promiseExtension = _.asPromise({
+      key1: 'value3'
+    });
+    
+    _.extend(promise, promiseExtension).then(function (obj) {
+      expect(obj).to.eql({
+        key1: 'value3',
+        key2: 'value2'
+      });
+      done();
+    }).done();
+  });
+  
+  it.skip('#defaults()', function (done) {
+    var obj = {
+      key1: 'value1',
+      key2: 'value2'
+    };
+    
+    var valuesPromise = _.asPromise(obj);
+    var defaults = _.asPromise({
+      key1: 'value3'
+    });
+    
+    _.extend(promiseExtension, valuesPromise).then(function (obj) {
+      expect(obj).to.eql({
+        key1: 'value1',
+        key2: 'value2'
+      });
+      done();
+    }).done();
+  });
+  
+  it('#pick()');
+  it('#omit()');
+  
+  /*
+  - keys
+  - values
+  - extend
+  - defaults
+  - pick
+  - omit
+   */
 });
 
 describe('utilities', function () {
