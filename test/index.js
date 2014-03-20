@@ -10,9 +10,6 @@ TODO
 ==============
 - angular support
 
-* return a promise instead
-* parallel and series all that need to be
-
 utilities
 =====================
 
@@ -227,8 +224,8 @@ describe('arrays', function () {
     var iterator = 0;
     
     var promises = [
-      Promise.from(123),
-      Promise.from(456)
+      _.asPromise(123),
+      _.asPromise(456)
     ];
     
     var iterate = _.each(function (promise, resolve, reject, idx) {
@@ -277,8 +274,8 @@ describe('arrays', function () {
   
   it('#map()', function (done) {
     var promises = [
-      Promise.from(123),
-      Promise.from(456)
+      _.asPromise(123),
+      _.asPromise(456)
     ];
     
     _.map(function (promise) {
@@ -329,9 +326,9 @@ describe('arrays', function () {
   
   it('#reduce()', function (done) {
     var promises = [
-      Promise.from('a'),
-      Promise.from('b'),
-      Promise.from('c')
+      _.asPromise('a'),
+      _.asPromise('b'),
+      _.asPromise('c')
     ];
     
     // Adds all the numbers in the promises together
@@ -351,9 +348,9 @@ describe('arrays', function () {
   
   it('#reduceRight()', function (done) {
     var promises = [
-      Promise.from('a'),
-      Promise.from('b'),
-      Promise.from('c')
+      _.asPromise('a'),
+      _.asPromise('b'),
+      _.asPromise('c')
     ];
     
     // Adds all the numbers in the promises together
@@ -373,9 +370,9 @@ describe('arrays', function () {
   
   it('#filter()', function (done) {
     var promises = [
-      Promise.from(123),
-      Promise.from(456),
-      Promise.from(789)
+      _.asPromise(123),
+      _.asPromise(456),
+      _.asPromise(789)
     ];
     
     _.filter(function (promise, idx) {
@@ -408,10 +405,7 @@ describe('arrays', function () {
         promise.then(function (num) {
           if (num == 123) called123 = true;
           if (num == 456) called456 = true;
-          
-          if (num == 456) {
-            expect(called123).to.equal(true);
-          }
+          if (num == 456) expect(called123).to.equal(true);
           
           resolve(num < 200);
         }).done();
@@ -427,24 +421,57 @@ describe('arrays', function () {
   
   it('find', function (done) {
     var promises = [
-      Promise.from(123),
-      Promise.from(456),
-      Promise.from(789)
+      _.promise(function (resolve, reject) {
+        setTimeout(function () {
+          resolve(123);
+        }, 0);
+      }),
+      _.asPromise(456),
+      _.asPromise(789)
     ];
     
     _.find(function (promise) {
       return _.promise(function (resolve, reject) {
         promise.then(function (num) {
-          resolve(num < 200);
+          resolve(num > 200 && num < 500);
         }, reject);
       });
     }, promises).then(function (res) {
-      expect(res).to.equal(123);
+      expect(res).to.equal(456);
       done();
     }).done();
   });
   
-  it('#findSeries')
+  it('#findSeries', function (done) {
+    var called123 = false;
+    var called456 = false;
+    var promises = [
+      _.promise(function (resolve, reject) {
+        setTimeout(function () {
+          resolve(123);
+        }, 0);
+      }),
+      _.asPromise(456),
+      _.asPromise(789)
+    ];
+    
+    _.findSeries(function (promise) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (num) {
+          if (num == 123) called123 = true;
+          if (num == 456) called456 = true;
+          if (num == 456) expect(called123).to.equal(true);
+          
+          resolve(num > 200 && num < 500);
+        }, reject);
+      });
+    }, promises).then(function (res) {
+      expect(res).to.equal(456);
+      expect(called123).to.equal(true);
+      expect(called456).to.equal(true);
+      done();
+    }).done();
+  });
   
   // (remove all falsey values)
   it('#compact()', function (done) {
@@ -462,6 +489,9 @@ describe('arrays', function () {
     }).done();
   }); 
   
+  it('#concat()');
+  it('#concatSeries()');
+  
   it('#first()');
   it('#initial()');
   it('#last()');
@@ -472,14 +502,14 @@ describe('arrays', function () {
 describe('collections', function () {
   
   it('pluck', function (done) {
-    var promise1 = new Promise(function (resolve, reject) {
+    var promise1 = _.promise(function (resolve, reject) {
       resolve({
         key1: 'promise1value1',
         key2: 'promise1value2'
       });
     });
     
-    var promise2 = new Promise(function (resolve, reject) {
+    var promise2 = _.promise(function (resolve, reject) {
       resolve({
         key1: 'promise2value1',
         key2: 'promise2value2'

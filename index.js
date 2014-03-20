@@ -11,7 +11,6 @@ var underpromise = {
 
 underpromise._method = function (name, fn) {
   var method = this[name] = this._partialize(fn);
-  
   return method;
 };
 
@@ -134,7 +133,7 @@ underpromise._method('each', function (args) {
   return underpromise.all(eachPromises);  
 });
 
-underpromise._method('eachSeries', function (args) {
+underpromise._method('eachSeries', function (args) {  var _shouldExit = false;
   var currentPromise = underpromise.asPromise(true);
   var promises = args.promises.map(function (promise, idx) {
     return currentPromise = currentPromise.then(function () {
@@ -201,21 +200,26 @@ underpromise._method('reduceRight', function (args) {
   });
 });
 
-underpromise._method('find', function (args) {
-  return underpromise.promise(function (resolve, reject) {
-    var wanted;
-    
-    // TODO: make the eachSeries stop after value passes fn test
-    
-    underpromise.eachSeries(function (promise, idx) {
-      return args.fn(promise, idx).then(function (passed) {
-        if (passed && !wanted) resolve(promise);
-      }, reject);
-    }, args.promises);
+['find', 'findSeries'].forEach(function (name) {
+  underpromise._method(name, function (args) {
+    return underpromise.promise(function (resolve, reject) {
+      var wanted;
+      var each = (name === 'find') ? 'each': 'eachSeries';
+      
+      // TODO: make the eachSeries stop after value passes fn test
+      
+      underpromise[each](function (promise, idx) {
+        var self = this;
+        return args.fn(promise, idx).then(function (passed) {
+          if (passed && !wanted) resolve(promise);
+        }, reject);
+      }, args.promises);
+    });
   });
 });
 
-underpromise.compact = underpromise.filter(underpromise.identity);
+
+underpromise.compact = underpromise.filter(underpromise.boolean);
 
 // Collections
 
