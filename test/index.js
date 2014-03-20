@@ -239,7 +239,7 @@ describe('arrays', function () {
     }).done();
   });
   
-  it.only('chains multiple function', function (done) {
+  it('chains multiple promises', function (done) {
     var promises = [
       _.promise(function (resolve) {
         resolve('a');
@@ -248,20 +248,28 @@ describe('arrays', function () {
       _.asPromise('c')
     ];
     
-    var dashit = _.map(function (promise, resolve) {
+    var dash = _.map(function (promise, resolve) {
       promise.then(function (letter) {
         resolve('-' + letter + '-');
       });
     });
     
-    var findA = _.find(function (promise, resolve) {
+    var find = _.find(function (promise, resolve) {
       promise.then(function (letter) {
         resolve(letter === '-a-');
       });
     });
     
-    findA(dashit(promises)).then(function (letter) {
-      expect(letter).to.equal('-a-');
+    var yell = _.map(function (promise, resolve) {
+      promise.then(function (letter) {
+        resolve(letter + '!!!');
+      });
+    });
+    
+    dash(promises)
+      .then(find)
+      .then(yell).then(function (result) {
+      expect(result).to.eql(['-a-!!!']);
       done();
     }).done();
   });
