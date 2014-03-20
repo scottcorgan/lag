@@ -361,6 +361,14 @@ underpromise._partializedMethod('extend', function () {
     });
 });
 
+underpromise._partializedMethod('defaults', function () {
+  return underpromise
+    .map(underpromise.identity, flatten(arguments).reverse())
+    .then(function (objects) {
+      return underpromise.asPromise(defaults.apply(null, objects));
+    });
+});
+
 // Utilities
 
 underpromise._method('equal', function (args) {

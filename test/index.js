@@ -751,34 +751,31 @@ describe.only('objects', function () {
     }).done();
   });
   
-  it.skip('#defaults()', function (done) {
+  it('#defaults()', function (done) {
     var obj = {
       key1: 'value1',
-      key2: 'value2'
+      key2: 'noop2'
     };
     
     var valuesPromise = _.asPromise(obj);
     var defaults = _.asPromise({
-      key1: 'value3'
+      key1: 'value3',
+      key2: 'noop'
     });
     
-    _.extend(promiseExtension, valuesPromise).then(function (obj) {
+    _.defaults(defaults, valuesPromise).then(function (obj) {
       expect(obj).to.eql({
         key1: 'value1',
-        key2: 'value2'
+        key2: 'noop2'
       });
       done();
-    }).done();n
+    }).done();
   });
   
   it('#pick()');
   it('#omit()');
   
   /*
-  - keys
-  - values
-  - extend
-  - defaults
   - pick
   - omit
    */
