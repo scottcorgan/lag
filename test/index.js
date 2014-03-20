@@ -379,7 +379,39 @@ describe('arrays', function () {
     }).done();
   });
   
-  it('#filterSeries()')
+  it('#filterSeries()', function (done) {
+    var called123 = false;
+    var called456 = false;
+    var promises = [
+      _.promise(function (resolve) {
+        setTimeout(function () {
+          resolve(123);
+        }, 0);
+      }),
+      _.asPromise(456)
+    ];
+    
+    _.filterSeries(function (promise, idx) {
+      return _.promise(function (resolve) {
+        promise.then(function (num) {
+          if (num == 123) called123 = true;
+          if (num == 456) called456 = true;
+          
+          if (num == 456) {
+            expect(called123).to.equal(true);
+          }
+          
+          resolve(num < 200);
+        }).done();
+      });
+    }, promises).then(function (res) {
+      expect(res.length).to.equal(1);
+      expect(res[0]).to.equal(123);
+      expect(called123).to.equal(true);
+      expect(called456).to.equal(true);
+      done();
+    }).done();
+  });
   
   it('find', function (done) {
     var promises = [

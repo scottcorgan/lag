@@ -176,20 +176,22 @@ underpromise._method('reduceRight', function (args) {
   return underpromise.reduce(args);
 });
 
-underpromise._method('filter', function (args) {
-  return underpromise.promise(function (resolve, reject) {
-    var filtered = [];
-    
-    underpromise.each(function (promise, idx) {
-      return args.fn(promise, idx).then(function (passed) {
-        if (passed) filtered.push(promise);
+['filter', 'filterSeries'].forEach(function (name) {
+  underpromise._method(name, function (args) {
+    return underpromise.promise(function (resolve, reject) {
+      var filtered = [];
+      var each = (name === 'filter') ? 'each' : 'eachSeries';
+      
+      underpromise[each](function (promise, idx) {
+        return args.fn(promise, idx).then(function (passed) {
+          if (passed) filtered.push(promise);
+        }, reject);
+      }, args.promises).then(function () {
+        underpromise.all(filtered).then(resolve);
       }, reject);
-    }, args.promises).then(function () {
-      underpromise.all(filtered).then(resolve);
-    }, reject);
+    });
   });
 });
-
 
 underpromise._method('find', function (args) {
   return underpromise.promise(function (resolve, reject) {
