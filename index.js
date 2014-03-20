@@ -74,17 +74,16 @@ underpromise.compose = function () {
   
   return function (promises) {
     return underpromise.promise(function (resolve, reject) {
-      runFunction(promises)
+      executeFunction(promises)
 
-      function runFunction (promises) {
+      function executeFunction (promises) {
         var fn = fns.shift();
         
         return fn
-          ? fn(promises).then(runFunction, reject)
+          ? fn(promises).then(executeFunction, reject)
           : resolve(underpromise.asPromise(promises));
-      }
+      };
     });
-    
   };
 };
 
@@ -116,33 +115,30 @@ underpromise.functionFirst = function () {
 // Arrays
 
 underpromise._method('each', function (args) {
-  var idx = 0;
-  var queue = asArray(args.promises).map(function (promise) {
-    return function () {
-      var _args = callbacker(arguments);
-      idx += 1;
-      
-      underpromise.promise(function (resolve, reject) {
-        args.fn(promise, resolve, reject, idx, function (err) {
-          // Exit
-          // TODO: make this exit the loop here
-          resolve();
-        });
-      }).then(function (value) {
-        _args.callback.apply(null, null, value);
-      }, _args.callback);
-    };
+  var eachPromises = args.promises.map(function (promise, idx) {
+    return args.fn(promise);
+    // return underpromise.promise(function (resolve, reject) {
+      // args.fn(promise, resolve, reject ,idx);
+    // });
   });
   
-  var drain = drainer(queue);
-  
-  return underpromise.promise(function (resolve, reject) {
-    drain(function (err) {
-      if (err) return reject(err);
-      return resolve();
-    });
-  });
+  return underpromise.all(eachPromises);  
 });
+
+underpromise._method('eachSeries', function (args) {
+  var currentPromise = underpromise.asPromise(true);
+  var promises = args.promises.map(function (promise, idx) {
+    return currentPromise = currentPromise.then(function () {
+      return args.fn(promise, idx);
+      // return underpromise.promise(function (resolve, reject) {
+      //   args.fn(promise, resolve, reject, idx);
+      // });
+    })
+  });
+    
+  return underpromise.all(promises);
+});
+
 
 underpromise._method('map', function (args) {
   return underpromise.promise(function (resolve, reject) {

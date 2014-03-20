@@ -8,38 +8,37 @@ var isPromise = require('is-promise');
 
 TODO
 ==============
-- returns promises instead of values
 - angular support
 
-each vs eachSeries
-map vs mapSeries
+* each vs eachSeries
+- map vs mapSeries
 
 utilities
 =====================
-_.compose
 
 collections
 ===================
-where
-findWhere
-reject
-every
-some
-contains
-max
-min
-sortBy
-indexBy
-countyBy
+- where
+- findWhere
+- reject
+- every
+- some
+- contains
+- max
+- min
+- sortBy
+- indexBy
+- countyBy
 
 Objects
 ==============================
-keys
-values
-extend
-defaults
-pick
-omit
+- keys
+- values
+- extend
+- defaults
+- pick
+- omit
+
  */
  
 
@@ -207,15 +206,72 @@ describe('arrays', function () {
     ];
     
     var iterate = _.each(function (promise, resolve, reject, idx) {
-      promise.then(function (val) {
-        iterator += 1;
-        expect(idx).to.equal(iterator);
-        resolve('this argument does nothing'); 
-      }).done();
+      iterator += 1;
+      return promise;
+      // promise.then(function (val) {
+      //  iterator += 1;
+      //   expect(idx).to.equal(iterator);
+      //   resolve('this argument does nothing'); 
+      // }).done();
     });
+    
+    // var iterate = _.each(function (promise, resolve, reject, idx) {
+    //   promise.then(function (val) {
+    //     expect(idx).to.equal(iterator);
+    //     iterator += 1;
+    //     resolve('this argument does nothing'); 
+    //   }).done();
+    // });
     
     iterate(promises).then(function () {
       expect(iterator).to.equal(2);
+      done();
+    }).done();
+  });
+  
+  it.only('#eachSeries()', function (done) {
+    var called123 = false;
+    var called456 = false
+    var promise123 = _.promise(function (resolve, reject) {
+      setTimeout(function () {
+        resolve(123);
+      }, 0);
+    });
+    var promise456 = _.asPromise(456);
+    
+    _.eachSeries(function (promise, idx) {
+      return _.promise(function (resolve, reject) {
+        promise.then(function (val) {
+          if (val == 123) {
+            called123 = true;
+            expect(called456).to.equal(false);
+          }
+          
+          if (val == 456) {
+            called456 = true;
+            expect(called123).to.equal(true);
+          }
+          
+          resolve();
+        }).done();
+      });
+      
+      // promise.then(function (val) {
+      //   if (val == 123) {
+      //     called123 = true;
+      //     expect(called456).to.equal(false);
+      //   }
+        
+      //   if (val == 456) {
+      //     called456 = true;
+      //     expect(called123).to.equal(true);
+      //   }
+        
+      //   resolve();
+      // }).done();
+    }, [promise123, promise456]).then(function () {
+      expect(called123).to.equal(true);
+      expect(called456).to.equal(true);
       done();
     }).done();
   });
