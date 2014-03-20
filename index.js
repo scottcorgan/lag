@@ -71,9 +71,11 @@ underpromise.identity = function () {
 };
 
 underpromise.boolean = function (promise) {
-  return underpromise.asPromise(promise).then(function (val) {
-    return underpromise.asPromise(!!val);
-  });
+  return underpromise
+    .asPromise(promise)
+    .then(function (val) {
+      return underpromise.asPromise(!!val);
+    });
 };
 
 underpromise.inverseBoolean = function (promise) {
@@ -131,7 +133,7 @@ underpromise.functionFirst = function () {
 
 underpromise._method('each', function (args) {
   var eachPromises = args.promises.map(function (promise, idx) {
-    return args.fn(promise);
+    return args.fn(promise, idx);
   });
   
   return underpromise.all(eachPromises);  
@@ -222,14 +224,22 @@ underpromise._method('reduceRight', function (args) {
       var wanted;
       var each = (name === 'find') ? 'each': 'eachSeries';
       
-      // TODO: make the eachSeries stop after value passes fn test
       
       underpromise[each](function (promise, idx) {
         var self = this;
         return args.fn(promise, idx).then(function (passed) {
-          if (passed && !wanted) resolve(promise);
+          
+          // FIXME: this leaves some promises hanging
+          // when no values match
+          
+          // if (passed && !wanted) resolve(promise);
+          if (passed && !wanted) wanted = promise;
         }, reject);
-      }, args.promises);
+      }, args.promises).then(function () {
+        resolve(wanted);
+      });
+      
+      
     });
   });
 });
@@ -283,6 +293,30 @@ underpromise._method('pluck', function (args) {
         });
     }, args.promises)
   });
+});
+
+underpromise.every = function (promises) {
+  return underpromise.compact(promises).then(function (compacted) {
+    return underpromise.asPromise(promises.length === compacted.length);
+  });
+};
+
+underpromise.some = function (promises) {
+  return underpromise
+    .find(underpromise.boolean, promises)
+    .then(underpromise.boolean);
+};
+
+underpromise._method('contains', function (args) {
+  var value = args.fn;
+  
+  return underpromise
+    .find(function (promise, idx) {
+      return promise.then(function (_val) {
+        return underpromise.asPromise(_val === value);
+      });
+    }, args.promises)
+    .then(underpromise.boolean);
 });
 
 module.exports = underpromise;

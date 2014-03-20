@@ -16,9 +16,6 @@ utilities
 
 collections
 ===================
-x where
-x findWhere
-- reject
 - every
 - some
 - contains
@@ -654,5 +651,47 @@ describe('collections', function () {
       done();
     }).done();
   });
+  
+  it('#every()', function (done) {
+    var promises = [
+      _.asPromise(true),
+      _.asPromise(false)
+    ];
+    
+    _.every(promises).then(function (every) {
+      expect(every).to.equal(false);
+      done();
+    }).done();
+  });
+  
+  it('#some()', function (done) {
+    var promises = [
+      _.asPromise(false),
+      _.asPromise(false)
+    ];
+    
+    _.some(promises).then(function (every) {
+      expect(every).to.equal(false);
+      done();
+    }).done();
+  });
+  
+  it('#contains()', function (done) {
+    var promises = [
+      _.asPromise('abc'),
+      _.asPromise('def')
+    ];
+    
+    _.contains('abc', promises).then(function (contains) {
+      expect(contains).to.equal(true);
+      done();
+    }).done();
+  });
+  
+  it('#max()');
+  it('#min()');
+  it('#sortBy()');
+  it('#indexBy()');
+  it('#countBy()');
   
 });
