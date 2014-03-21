@@ -5,6 +5,7 @@ var extend = require('extend');
 var defaults = require('defaults');
 var flatten = require('flat-arguments');
 var clone = require('clone');
+var zipObject = require('zip-object');
 
 var lag = {
   _promiseFirst: false,
@@ -17,16 +18,24 @@ lag._method = function (name, fn) {
   return method;
 };
 
-// unlimted arguments syntax, but only one passed to initial partial
+// unlimited arguments syntax, but only one passed to initial partial
 lag._partializedMethod = function (name, fn) {
   return lag[name] = function () {
-    if (arguments.length === 1) {
+    // if (arguments.length === 1) {
+      
+    var args = flatten(asArray(arguments));
+    
+    // Promises or functions first?
+    if (lag._promiseFirst) args = args.reverse();
+    
+    // If last argument isn't a promise, this is a partial
+    if (args.length === 1) {
       return lag.partial(function () {
         return lag[name].apply(null, asArray(arguments));
-      }, arguments[0]);
+      }, args);
     }
     
-    return fn.apply(null, asArray(arguments));
+    return fn.apply(null, args);
   };
 };
 
@@ -301,7 +310,7 @@ lag.first = function (promises) {
 };
 
 lag.last = function (promises) {
-  return lag.asPromise(promises.pop());
+  return lag.asPromise(promises[promises.length - 1]);
 };
 
 lag.initial = function (promises) {
@@ -399,8 +408,18 @@ lag._partializedMethod('defaults', function () {
     });
 });
 
-lag._method('pick', function (args) {
+// TODO: make these
+// lag._methodWithMultipleFns
+// lag._methodWithMultiplePromises
+
+lag._partializedMethod('pick', function () {
+  var args = asArray(arguments);
   
+  return lag.last(args).then(function (obj) {
+    return lag.values(obj).then(function (values) {
+      return lag.asPromise(zipObject(args.slice(0, args.length - 1), values));
+    });
+  });
 });
 
 // Utilities

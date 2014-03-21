@@ -37,6 +37,7 @@
     "as-array": "^0.1.2",
     "extend": "^1.2.1",
     "flat-arguments": "^0.3.0",
-    "defaults": "^1.0.0"
+    "defaults": "^1.0.0",
+    "zip-object": "^0.1.0"
   }
 }

@@ -772,11 +772,17 @@ describe('objects', function () {
     }).done();
   });
   
-  it.only('#pick()', function (done) {
-    // lag.pick()
+  it('#pick(), get object with only the specified properties', function (done) {
+    var promise = lag.asPromise({
+      key1: 'value1',
+      key2: 'value2',
+      key3: 'value3'
+    });
     
-    
-    done();
+    lag.pick('key1', 'key2', promise).then(function (res) {
+      expect(res).to.eql({key1: 'value1', key2: 'value2'});
+      done();
+    }).done();
   });
   
   it('#omit()');
