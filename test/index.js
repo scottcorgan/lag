@@ -819,4 +819,22 @@ describe('utilities', function () {
     });
   });
   
+  it('#add()', function (done) {
+    var promise = lag.asPromise(123);
+    
+    lag.add(1, promise).then(function (val) {
+      expect(val).to.equal(124);
+      done();
+    }).done();
+  });
+  
+  it('#subtract()', function (done) {
+    var promise = lag.asPromise(123);
+    
+    lag.subtract(1, promise).then(function (val) {
+      expect(val).to.equal(122);
+      done();
+    }).done();
+  });
+  
 });

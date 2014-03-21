@@ -477,6 +477,22 @@ lag._method('lessThan', function (args) {
   });
 });
 
+lag._method('add', function (args) {
+  var adder = args.fn;
+  
+  return lag.first(args.promises).then(function (val) {
+    return lag.asPromise(adder + val);
+  });
+});
+
+lag._method('subtract', function (args) {
+  var adder = args.fn;
+  
+  return lag.first(args.promises).then(function (val) {
+    return lag.asPromise(val - adder);
+  });
+});
+
 lag.log = function (promise) {
   return promise.then(function (val) {
     console.log(val);
