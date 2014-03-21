@@ -66,9 +66,13 @@ _.map(_.add(1), promises)
   * [reduce](#reducefn-promises)
   * [reduceRight](#reducerightfn-promises)
   * [first](#firstpromises)
+  * [firstValue](#firstvaluepromise)
   * [last](#lastpromises)
+  * [lastValue](#lastvaluepromise)
   * [initial](#initialpromises)
-  * [rest](#restpromises)
+  * [initialValues](#initialvaluespromise)
+  * [tail](#tailpromises)
+  * [tailValues](#tailvaluespromise)
   * [compact](#compactpromises)
 * **[Collections](#collections)**
   * [where](#whereobject-promises)
@@ -111,31 +115,39 @@ _.map(_.add(1), promises)
 
 ### mapSeries(fn, promises)
 
-### filter(fn, promises);
+### filter(fn, promises)
 
-### filterSeries(fn, promises);
+### filterSeries(fn, promises)
 
-### reject(fn, promises);
+### reject(fn, promises)
 
-### rejectSeries(fn, promises);
+### rejectSeries(fn, promises)
 
-### find(fn, promises);
+### find(fn, promises)
 
-### findSeries(fn, promises);
+### findSeries(fn, promises)
 
-### reduce(fn, promises);
+### reduce(fn, promises)
 
-### reduceRight(fn, promises);
+### reduceRight(fn, promises)
 
-### first(promises);
+### first(promises)
+
+### firstValue(promise)
 
 ### last(promises)
 
-### initial(promises);
+### lastValue(promise)
 
-### rest(promises);
+### initial(promises)
 
-### compact(promises);
+### initialValues(promise)
+
+### tail(promises)
+
+### tailValues(promise)
+
+### compact(promises)
 
 
 ## Collections
