@@ -416,11 +416,17 @@ lag._partializedMethod('pick', function () {
   var args = asArray(arguments);
   
   return lag.last(args).then(function (obj) {
-    return lag.values(obj).then(function (values) {
-      return lag.asPromise(zipObject(args.slice(0, args.length - 1), values));
-    });
+    return lag.zipObject(lag.initial(args), lag.values(obj));
   });
 });
+
+lag.zipObject = function (arr1, arr2) {
+  return arr1.then(function (keys) {
+    return arr2.then(function (values) {
+      return lag.asPromise(zipObject(keys, values));
+    });
+  });
+};
 
 // Utilities
 

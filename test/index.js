@@ -787,10 +787,19 @@ describe('objects', function () {
   
   it('#omit()');
   
-  /*
-  - pick
-  - omit
-   */
+  it('#zipObject()', function (done) {
+    var promise1 = lag.asPromise(['name', 'age']);
+    var promise2 = lag.asPromise(['lag', '30']);
+    
+    lag.zipObject(promise1, promise2).then(function (obj) {
+      expect(obj).to.eql({
+        name: 'lag',
+        age: '30'
+      });
+      done();
+    });
+  });
+  
 });
 
 describe('utilities', function () {
