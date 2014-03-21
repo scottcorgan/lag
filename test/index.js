@@ -12,10 +12,6 @@ TODO
 - angular support
 - move to seprate folders/modules
 
-utilities
-=====================
-- log
-
 collections
 ===================
 - max
@@ -24,15 +20,6 @@ collections
 - indexBy
 - countyBy
 - at
-
-Objects ?? these will only work for a single promise;
-==============================
-- keys
-- values
-- extend
-- defaults
-- pick
-- omit
 
  */
  
