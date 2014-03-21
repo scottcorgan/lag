@@ -84,6 +84,12 @@ _.map(_.add(1), promises)
   * [defaults]()
   * [pick]()
   * [omit]()
+* **Numbers**
+  * [greaterThan]()
+  * [lessThan]()
+  * [equal]()
+  * [add]()
+  * [subtract]()
 * **Utilities**
   * [promise]()
   * [asPromise]()
@@ -93,13 +99,105 @@ _.map(_.add(1), promises)
   * [boolean]()
   * [inverseBoolean]()
   * [compose]()
-* **Numbers**
-  * [greaterThan]()
-  * [lessThan]()
-  * [equal]()
-  * [add]()
-  * [subtract]()
-  
+
+
+## Arrays
+
+### each(fn, promises)
+
+### eachSeries(fn, promises)
+
+### map(fn, promises)
+
+### mapSeries(fn, promises)
+
+### filter(fn, promises);
+
+### filterSeries(fn, promises);
+
+### reject(fn, promises);
+
+### rejectSeries(fn, promises);
+
+### find(fn, promises);
+
+### findSeries(fn, promises);
+
+### reduce(fn, promises);
+
+### reduceRight(fn, promises);
+
+### first(promises);
+
+### last(promises)
+
+### intiial(promises);
+
+### rest(promises);
+
+### compact(promises);
+
+
+## Collections
+
+## where(object, promises)
+
+## findWhere(object, promises)
+
+## pluck(keys, promises)
+
+## every(promises)
+
+## some(promises)
+
+## contains(keys, promises)
+
+
+## Objects
+
+## keys(promise)
+
+## values(promise)
+
+## extend(promise[, object1, objectn, ...])
+
+## defaults(defaults[, promise1, promisen, ...])
+
+## pick(key1[, keyn, ...], promise)
+
+## omit(key1[, keyn, ...], promise)
+
+
+## Nubmers
+
+### greaterThan(number, promise)
+
+### lessThan(number, promise)
+
+### equal(promise1, promise2)
+
+### add(number, promise)
+
+### subtract(number, promise)
+
+
+## Utilities
+
+### promise(function)
+
+### asPromise(value)
+
+### all(promise1[, promise2, promisen, ...])
+
+### partial(function[, value1, valuen, ...])
+
+### identity(value)
+
+### boolean(value)
+
+### inverseBoolean(value)
+
+### compose(method1[, method2, methodn, ...])
 
 
 ## Build

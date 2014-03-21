@@ -819,6 +819,8 @@ describe('utilities', function () {
     });
   });
   
+  // TODO: this should add 2 promises
+  
   it('#add()', function (done) {
     var promise = lag.asPromise(123);
     
