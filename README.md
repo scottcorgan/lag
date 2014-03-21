@@ -140,32 +140,32 @@ _.map(_.add(1), promises)
 
 ## Collections
 
-## where(object, promises)
+### where(object, promises)
 
-## findWhere(object, promises)
+### findWhere(object, promises)
 
-## pluck(keys, promises)
+### pluck(keys, promises)
 
-## every(promises)
+### every(promises)
 
-## some(promises)
+### some(promises)
 
-## contains(keys, promises)
+### contains(keys, promises)
 
 
-## Objects
+### Objects
 
-## keys(promise)
+### keys(promise)
 
-## values(promise)
+### values(promise)
 
-## extend(promise[, object1, objectn, ...])
+### extend(promise[, object1, objectn, ...])
 
-## defaults(defaults[, promise1, promisen, ...])
+### defaults(defaults[, promise1, promisen, ...])
 
-## pick(key1[, keyn, ...], promise)
+### pick(key1[, keyn, ...], promise)
 
-## omit(key1[, keyn, ...], promise)
+### omit(key1[, keyn, ...], promise)
 
 
 ## Nubmers
