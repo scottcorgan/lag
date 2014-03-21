@@ -323,14 +323,6 @@ lag.rest = function (promises) {
 
 // Collections
 
-lag._method('pluck', function (args) {
-  return lag.all(args.promises).then(function (res) {
-    return lag.asPromise(res.map(function (obj) {
-      return obj[args.fn];
-    }));
-  });
-});
-
 ['where', 'findWhere'].forEach(function (name) {
   lag._method(name, function (args) {
     var where = args.fn;
@@ -348,6 +340,14 @@ lag._method('pluck', function (args) {
         return lag.asPromise(matching);
         });
     }, args.promises)
+  });
+});
+
+lag._method('pluck', function (args) {
+  return lag.all(args.promises).then(function (res) {
+    return lag.asPromise(res.map(function (obj) {
+      return obj[args.fn];
+    }));
   });
 });
 
@@ -459,6 +459,22 @@ lag._method('equal', function (args) {
     .then(function (values) {
       return lag.asPromise(values[0] === values[1]);
     });
+});
+
+lag._method('greaterThan', function (args) {
+  var targetValue = args.fn;
+  
+  return  lag.first(args.promises).then(function (val) {
+    return lag.asPromise(val > targetValue);
+  });
+});
+
+lag._method('lessThan', function (args) {
+  var targetValue = args.fn;
+  
+  return  lag.first(args.promises).then(function (val) {
+    return lag.asPromise(val < targetValue);
+  });
 });
 
 lag.log = function (promise) {

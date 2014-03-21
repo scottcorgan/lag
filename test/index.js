@@ -799,7 +799,24 @@ describe('utilities', function () {
       expect(isEqual).to.equal(false);
       done();
     }).done();
+  });
+  
+  it('#greaterThan()', function (done) {
+    var promise = lag.asPromise(123);
     
+    lag.greaterThan(100, promise).then(function (isGreater) {
+      expect(isGreater).to.equal(true);
+      done();
+    });
+  });
+  
+  it('#lessThan()', function (done) {
+    var promise = lag.asPromise(123);
+    
+    lag.lessThan(200, promise).then(function (isGreater) {
+      expect(isGreater).to.equal(true);
+      done();
+    });
   });
   
 });

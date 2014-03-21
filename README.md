@@ -8,7 +8,7 @@ Using promises as functional values allows the developer to write asynchronous c
 
 `lag.methodName(function, promise_array)`
 
-Lag uses the "function first" method signature in order to take advantage of the functional approach to programming. If you prefer the put the values first and the method second, you can call the `lab.promiseFirst()` method to switch the parameter order.
+Lag uses the "function first" method signature in order to take advantage of the functional approach to programming. If you prefer the put the values first and the method second, you can call the `lag.promiseFirst()` method to switch the parameter order.
 
 ## Install
 
@@ -36,18 +36,66 @@ var promises = [
   _.asPromise(789)
 ];
 
-var mappedPromises = _.map(function (promise) {
+_.map(function (promise) {
   return promise.then(function (val) {
     return _.asPromise(val + 1);
   });
-}, promises).then(function (values) {
-  // values === [124, 457, 790]
+}, promises)
+.then(_.filter(_.lessThan(400)))
+.then(function (values) {
+	// values === [123]
 });
 ```
 
 ## Methods
 
-(Coming soon)
+* **Arrays**
+  * [each]()
+  * [eachSeries]()
+  * [map]()
+  * [mapSeries]()
+  * [filter]()
+  * [filterSeries]()
+  * [reject]()
+  * [rejectSeries]()
+  * [find]()
+  * [findSeries]()
+  * [reduce]()
+  * [reduceRight]()
+  * [first]()
+  * [last]()
+  * [initial]()
+  * [rest]()
+  * [compact]()
+* **Collections**
+  * [where]()
+  * [findWhere]()
+  * [pluck]()
+  * [every]()
+  * [some]()
+  * [contains]()
+* **Objects**
+  * [keys]()
+  * [values]()
+  * [extend]()
+  * [defaults]()
+  * [pick]()
+  * [omit]()
+* **Utilities**
+  * [promise]()
+  * [asPromise]()
+  * [all]()
+  * [partial]()
+  * [identity]()
+  * [boolean]()
+  * [inverseBoolean]()
+  * [compose]()
+* **Numbers**
+  * [greaterThan]()
+  * [lessThan]()
+  * [equal]()
+  
+
 
 ## Build
 
