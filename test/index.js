@@ -779,13 +779,24 @@ describe('objects', function () {
       key3: 'value3'
     });
     
-    lag.pick('key1', 'key2', promise).then(function (res) {
-      expect(res).to.eql({key1: 'value1', key2: 'value2'});
+    lag.pick('key1', 'key3', promise).then(function (res) {
+      expect(res).to.eql({key1: 'value1', key3: 'value3'});
       done();
     }).done();
   });
   
-  it('#omit()');
+  it('#omit(), get object without the specified keys', function (done) {
+    var promise = lag.asPromise({
+      key1: 'value1',
+      key2: 'value2',
+      key3: 'value3'
+    });
+    
+    lag.omit('key1', 'key2', promise).then(function (res) {
+      expect(res).to.eql({key3: 'value3'});
+      done();
+    }).done();
+  });
   
   it('#zipObject()', function (done) {
     var promise1 = lag.asPromise(['name', 'age']);

@@ -416,7 +416,30 @@ lag._partializedMethod('pick', function () {
   var args = asArray(arguments);
   
   return lag.last(args).then(function (obj) {
-    return lag.zipObject(lag.initial(args), lag.values(obj));
+    return lag.initial(args).then(function (keys) {
+      var returnObj = {};
+      
+      keys.forEach(function (key) {
+        returnObj[key] = obj[key];
+      });
+      
+      return lag.asPromise(returnObj);
+    });
+  });
+});
+
+lag._partializedMethod('omit', function () {
+  var args = asArray(arguments);
+  
+  return lag.last(args).then(function (obj) {
+    return lag.initial(args).then(function (keysToRemove) {      
+      
+      var keys = lag.reject(function (key) {
+        return lag.contains(key, keysToRemove);
+      }, Object.keys(obj));
+      
+      return lag.pick(keys, obj);
+    });
   });
 });
 
