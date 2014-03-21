@@ -12,15 +12,6 @@ TODO
 - angular support
 - move to seprate folders/modules
 
-collections
-===================
-- max
-- min
-- sortBy
-- indexBy
-- countyBy
-- at
-
  */
  
 
@@ -586,11 +577,6 @@ describe('arrays', function () {
   
 });
 
-describe('objects', function () {
-  
-  
-});
-
 describe('collections', function () {
   
   it('#where()', function (done) {
@@ -676,11 +662,14 @@ describe('collections', function () {
     }).done();
   });
   
+  // TODO: make these
+  
   it('#max()');
   it('#min()');
   it('#sortBy()');
   it('#indexBy()');
   it('#countBy()');
+  it('#at()');
   
 });
 
