@@ -40,7 +40,7 @@ var promises = [
       if (err) return reject(err);
       resolve(res)
     });
-	})
+  })
 ];
 
 _.map(function (promise) {
