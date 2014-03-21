@@ -8,7 +8,9 @@ Using promises as functional values allows the developer to write asynchronous c
 
 `lag.methodName(function, promise_array)`
 
-Lag uses the "function first" method signature in order to take advantage of the functional approach to programming. If you prefer the put the values first and the method second, you can call the `lag.promiseFirst()` method to switch the parameter order.
+Lag uses the "function first" method signature in order to take advantage of the functional approach to programming.
+
+If you prefer the put the values first and the method second, you can call the `lag.promiseFirst()` method to switch the parameter order to `lag.methodName(promise_array, function)`.
 
 ## Install
 
@@ -33,7 +35,12 @@ var xhr = require('xhr');
 var promises = [
   _.asPromise(123),
   _.asPromise(456),
-  _.asPromise(789)
+  _.promise(function (resolve, reject) {
+    http.get('http://someapi.com', function (err, res) {
+      if (err) return reject(err);
+      resolve(res)
+    });
+	})
 ];
 
 _.map(function (promise) {
@@ -43,7 +50,7 @@ _.map(function (promise) {
 }, promises)
 .then(_.filter(_.lessThan(400)))
 .then(function (values) {
-	// values === [123]
+	// values === [124]
 });
 ```
 
