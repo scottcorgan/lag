@@ -4,6 +4,7 @@ var asArray = require('as-array');
 var extend = require('extend');
 var defaults = require('defaults');
 var flatten = require('flat-arguments');
+var clone = require('clone');
 
 var lag = {
   _promiseFirst: false,
@@ -29,28 +30,59 @@ lag._partializedMethod = function (name, fn) {
   };
 };
 
+lag._fnFromArgs = function (args) {
+  var fn;
+  
+  if (lag._promiseFirst) fn = args[args.length - 1];
+  else fn = args[0];
+  
+  
+  return fn;
+};
+
+lag._promisesFromArgs = function (args) {
+  var promises;
+  
+  if (!args[1]) return; // No promises
+  if (lag._promiseFirst) promises =  flatten([].slice.call(args, 0, args.length -1));
+  else promises = flatten([].slice.call(args, 1));
+  
+  return promises;
+};
+
 lag._args = function (args) {
+  var _args = {};
   
-  // TODO: wow, make this less ugly
-  
-  var _args =  {
-    fn: (args[0] && args[0].fn) // are the args an object?
-      ? args[0].fn
-      : args[0],
-    promises: (args[0] && args[0].promises) // are the args an object?
-      ? args[0].promises
-      : args[1]
-  };
-  
-  if (lag._promiseFirst) {
-    var fn = _args.fn;
-    var promises = _args.promises;
-    
-    _args = {
-      fn: promises,
-      promises: fn
-    };
+  // object
+  if (args[0] && args[0].fn) {
+    _args.fn = args[0].fn;
+    _args.promises = asArray(args[0].promises);
   }
+  
+  // probably multiple arguments
+  if (args.length >= 1 && !args[0].fn) {
+    _args.fn = lag._fnFromArgs(args);
+    _args.promises = lag._promisesFromArgs(args);
+  }
+  
+  // _args =  {
+  //   fn: (args[0] && args[0].fn) // are the args an object?
+  //     ? args[0].fn
+  //     : args[0],
+  //   promises: (args[0] && args[0].promises) // are the args an object?
+  //     ? args[0].promises      // : args[1]
+  //     : (args[1]) ? flatten(asArray(args).slice(1)) : undefined // handles passing in any number of promises
+  // };
+
+  // if (lag._promiseFirst) {
+  //   var fn = _args.fn;
+  //   var promises = _args.promises;
+    
+  //   _args = {
+  //     fn: promises,
+  //     promises: fn
+  //   };
+  // }
   
   // Trun all values into promises
   if (_args.promises) {
@@ -283,12 +315,10 @@ lag.rest = function (promises) {
 // Collections
 
 lag._method('pluck', function (args) {
-  return lag.promise(function (resolve, reject) {
-    lag.all(args.promises).then(function (res) {
-      resolve(res.map(function (obj) {
-        return obj[args.fn];
-      }));
-    }, reject);
+  return lag.all(args.promises).then(function (res) {
+    return lag.asPromise(res.map(function (obj) {
+      return obj[args.fn];
+    }));
   });
 });
 
@@ -367,6 +397,10 @@ lag._partializedMethod('defaults', function () {
     .then(function (objects) {
       return lag.asPromise(defaults.apply(null, objects));
     });
+});
+
+lag._method('pick', function (args) {
+  
 });
 
 // Utilities

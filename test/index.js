@@ -772,7 +772,13 @@ describe('objects', function () {
     }).done();
   });
   
-  it('#pick()');
+  it.only('#pick()', function (done) {
+    // lag.pick()
+    
+    
+    done();
+  });
+  
   it('#omit()');
   
   /*
