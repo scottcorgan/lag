@@ -43,13 +43,7 @@ var promises = [
   })
 ];
 
-var add = _.partial(function (val, promise) {
-  return promise.then(function (promiseVal) {
-    return _.asPromise(val + promiseVal);
-  });
-});
-
-_.map(add(1), promises)
+_.map(_.add(1), promises)
 .then(_.filter(_.lessThan(400)))
 .then(function (values) {
 	// values === [124]
@@ -103,6 +97,8 @@ _.map(add(1), promises)
   * [greaterThan]()
   * [lessThan]()
   * [equal]()
+  * [add]()
+  * [subtract]()
   
 
 
