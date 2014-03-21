@@ -305,19 +305,46 @@ lag._method('reduceRight', function (args) {
 lag.compact = lag.filter(lag.boolean);
 
 lag.first = function (promises) {
-  return lag.asPromise(asArray(promises).shift());
+  return lag.asPromise(asArray(promises)[0]);
+};
+
+lag.firstValue = function (promise) {
+  return lag.first(promise).then(function (arr) {
+    return lag.asPromise(asArray(arr)[0]);
+  });
 };
 
 lag.last = function (promises) {
   return lag.asPromise(promises[promises.length - 1]);
 };
 
+lag.lastValue = function (promise) {
+  return lag.first(promise).then(function (arr) {
+    arr = asArray(arr);
+    return lag.asPromise(arr[arr.length - 1]);
+  });
+};
+
 lag.initial = function (promises) {
   return lag.all(promises.slice(0, promises.length-1));
 };
 
-lag.rest = function (promises) {
+lag.initialValues = function (promise) {
+  return lag.first(promise).then(function (arr) {
+    arr = asArray(arr);
+    return lag.asPromise(arr.slice(0, arr.length-1));
+  });
+};
+
+lag.tail = function (promises) {
   return lag.all(promises.slice(1));
+};
+
+lag.tailValues = function (promise) {
+  return lag.first(promise).then(function (arr) {
+    arr = asArray(arr);
+    return lag.asPromise(arr.slice(1));
+  });
 };
 
 // Collections

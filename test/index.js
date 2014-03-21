@@ -535,15 +535,9 @@ describe('arrays', function () {
     }).done();
   });
   
-  it('#initial(), everything but the last', function (done) {
-    var promises = [
-      lag.asPromise(123),
-      lag.asPromise(456),
-      lag.asPromise(789)
-    ];
-    
-    lag.initial(promises).then(function (res) {
-      expect(res).to.eql([123,456]);
+  it('#firstValue(), gets the first value of a resolve promise', function (done) {
+    lag.firstValue(lag.asPromise([1,2,3])).then(function (res) {
+      expect(res).to.equal(1);
       done();
     }).done();
   });
@@ -561,15 +555,49 @@ describe('arrays', function () {
     }).done();
   });
   
-  it('#rest(), everything but the first', function (done) {
+  it('#lastValue(), gets the last value of a resolve promise', function (done) {
+    lag.lastValue(lag.asPromise([1,2,3])).then(function (res) {
+      expect(res).to.equal(3);
+      done();
+    }).done();
+  });
+  
+  it('#initial(), everything but the last', function (done) {
     var promises = [
       lag.asPromise(123),
       lag.asPromise(456),
       lag.asPromise(789)
     ];
     
-    lag.rest(promises).then(function (res) {
+    lag.initial(promises).then(function (res) {
+      expect(res).to.eql([123,456]);
+      done();
+    }).done();
+  });
+  
+  it('#initialValues(), all but the last values of a resolved promise', function (done) {
+    lag.initialValues(lag.asPromise([1,2,3])).then(function (res) {
+      expect(res).to.eql([1,2]);
+      done();
+    }).done();
+  });
+  
+  it('#tail(), everything but the first', function (done) {
+    var promises = [
+      lag.asPromise(123),
+      lag.asPromise(456),
+      lag.asPromise(789)
+    ];
+    
+    lag.tail(promises).then(function (res) {
       expect(res).to.eql([456,789]);
+      done();
+    }).done();
+  });
+  
+  it('#tailValues()', function (done) {
+    lag.tailValues(lag.asPromise([1,2,3])).then(function (res) {
+      expect(res).to.eql([2, 3]);
       done();
     }).done();
   });
