@@ -52,53 +52,53 @@ _.map(_.add(1), promises)
 
 ## Methods
 
-* **Arrays**
-  * [each]()
-  * [eachSeries]()
-  * [map]()
-  * [mapSeries]()
-  * [filter]()
-  * [filterSeries]()
-  * [reject]()
-  * [rejectSeries]()
-  * [find]()
-  * [findSeries]()
-  * [reduce]()
-  * [reduceRight]()
-  * [first]()
-  * [last]()
-  * [initial]()
-  * [rest]()
-  * [compact]()
-* **Collections**
-  * [where]()
-  * [findWhere]()
-  * [pluck]()
-  * [every]()
-  * [some]()
-  * [contains]()
-* **Objects**
-  * [keys]()
-  * [values]()
-  * [extend]()
-  * [defaults]()
-  * [pick]()
-  * [omit]()
-* **Numbers**
-  * [greaterThan]()
-  * [lessThan]()
-  * [equal]()
-  * [add]()
-  * [subtract]()
-* **Utilities**
-  * [promise]()
-  * [asPromise]()
-  * [all]()
-  * [partial]()
-  * [identity]()
-  * [boolean]()
-  * [inverseBoolean]()
-  * [compose]()
+* **[Arrays](#arrays)**
+  * [each](#eachfn-promises)
+  * [eachSeries](#eachseriesfn-promises)
+  * [map](#mapfn-promises)
+  * [mapSeries](#mapseriesfn-promises)
+  * [filter](#filterfn-promises)
+  * [filterSeries](#filterseriesfn-promises)
+  * [reject](#rejectfn-promises)
+  * [rejectSeries](#rejectseriesfn-promises)
+  * [find](#findfn-promises)
+  * [findSeries](#findseriesfn-promises)
+  * [reduce](#reducefn-promises)
+  * [reduceRight](#reducerightfn-promises)
+  * [first](#firstpromises)
+  * [last](#lastpromises)
+  * [initial](#initialpromises)
+  * [rest](#restpromises)
+  * [compact](#compactpromises)
+* **[Collections](#collections)**
+  * [where](#whereobject-promises)
+  * [findWhere](#findwhereobject-promises)
+  * [pluck](#pluckkeys-promises)
+  * [every](#everypromises)
+  * [some](#somepromises)
+  * [contains](#containskeys-promises)
+* **[Objects](#objects)**
+  * [keys](#keyspromise)
+  * [values](#valuespromise)
+  * [extend](#extendpromise-object1-objectn-)
+  * [defaults](#defaultsdefaults-promise1-promisen-)
+  * [pick](#pickkey1-keyn--promise)
+  * [omit](#omitkey1-keyn--promise)
+* **[Numbers](#nubmers)**
+  * [greaterThan](#greaterthannumber-promise)
+  * [lessThan](#lessthannumber-promise)
+  * [equal](#equalpromise1-promise2)
+  * [add](#addnumber-promise)
+  * [subtract](#subtractnumber-promise)
+* **[Utilities](#utilities)**
+  * [promise](#promisefunction)
+  * [asPromise](#aspromisevalue)
+  * [all](#allpromise1-promise2-promisen-)
+  * [partial](#partialfunction-value1-valuen-)
+  * [identity](#identityvalue)
+  * [boolean](#booleanvalue)
+  * [inverseBoolean](#inversebooleanvalue)
+  * [compose](#composemethod1-method2-methodn-)
 
 
 ## Arrays
@@ -131,7 +131,7 @@ _.map(_.add(1), promises)
 
 ### last(promises)
 
-### intiial(promises);
+### initial(promises);
 
 ### rest(promises);
 
