@@ -153,7 +153,7 @@ _.map(_.add(1), promises)
 ### contains(keys, promises)
 
 
-### Objects
+## Objects
 
 ### keys(promise)
 
