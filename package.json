@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/scottcorgan/underpromise.git"
+    "url": "https://github.com/scottcorgan/lag.git"
   },
   "keywords": [
     "promise",
@@ -19,9 +19,9 @@
   "author": "Scott Corgan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/scottcorgan/underpromise/issues"
+    "url": "https://github.com/scottcorgan/lag/issues"
   },
-  "homepage": "https://github.com/scottcorgan/underpromise",
+  "homepage": "https://github.com/scottcorgan/lag",
   "devDependencies": {
     "promise": "^4.0.0",
     "is-promise": "^1.0.0",

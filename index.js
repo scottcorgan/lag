@@ -5,23 +5,23 @@ var extend = require('extend');
 var defaults = require('defaults');
 var flatten = require('flat-arguments');
 
-var underpromise = {
+var lag = {
   _promiseFirst: false,
   _functionFirst: true
 };
 
 // (fn, promise) syntax
-underpromise._method = function (name, fn) {
+lag._method = function (name, fn) {
   var method = this[name] = this._partialize(fn);
   return method;
 };
 
 // unlimted arguments syntax, but only one passed to initial partial
-underpromise._partializedMethod = function (name, fn) {
-  return underpromise[name] = function () {
+lag._partializedMethod = function (name, fn) {
+  return lag[name] = function () {
     if (arguments.length === 1) {
-      return underpromise.partial(function () {
-        return underpromise[name].apply(null, asArray(arguments));
+      return lag.partial(function () {
+        return lag[name].apply(null, asArray(arguments));
       }, arguments[0]);
     }
     
@@ -29,7 +29,7 @@ underpromise._partializedMethod = function (name, fn) {
   };
 };
 
-underpromise._args = function (args) {
+lag._args = function (args) {
   
   // TODO: wow, make this less ugly
   
@@ -42,7 +42,7 @@ underpromise._args = function (args) {
       : args[1]
   };
   
-  if (underpromise._promiseFirst) {
+  if (lag._promiseFirst) {
     var fn = _args.fn;
     var promises = _args.promises;
     
@@ -54,26 +54,26 @@ underpromise._args = function (args) {
   
   // Trun all values into promises
   if (_args.promises) {
-    _args.promises = asArray(_args.promises).map(underpromise.asPromise);
+    _args.promises = asArray(_args.promises).map(lag.asPromise);
   }
   
   return _args;
 };
 
-underpromise.promise = function (fn) {
+lag.promise = function (fn) {
   fn = fn || function () {};
   return new Promise(fn);
 };
 
-underpromise.asPromise = function (value) {
+lag.asPromise = function (value) {
   return Promise.from(value);
 };
 
-underpromise.all = function () {
+lag.all = function () {
   return Promise.all.apply(Promise, asArray(arguments));
 };
 
-underpromise.partial = function () {
+lag.partial = function () {
   var partialArgs = asArray(arguments);
   var fn = partialArgs.shift();
   
@@ -83,31 +83,31 @@ underpromise.partial = function () {
   };
 };
 
-underpromise.identity = function () {
+lag.identity = function () {
   return arguments[0];
 };
 
-underpromise.boolean = function (promise) {
-  return underpromise
+lag.boolean = function (promise) {
+  return lag
     .asPromise(promise)
     .then(function (val) {
-      return underpromise.asPromise(!!val);
+      return lag.asPromise(!!val);
     });
 };
 
-underpromise.inverseBoolean = function (promise) {
-  return underpromise.asPromise(promise)
-    .then(underpromise.boolean)
+lag.inverseBoolean = function (promise) {
+  return lag.asPromise(promise)
+    .then(lag.boolean)
     .then(function (val) {
-      return underpromise.asPromise(!val);
+      return lag.asPromise(!val);
     });
 };
 
-underpromise.compose = function () {
+lag.compose = function () {
   var fns = asArray(arguments).reverse();
   
   return function (promises) {
-    return underpromise.promise(function (resolve, reject) {
+    return lag.promise(function (resolve, reject) {
       executeFunction(promises)
 
       function executeFunction (promises) {
@@ -115,20 +115,20 @@ underpromise.compose = function () {
         
         return fn
           ? fn(promises).then(executeFunction, reject)
-          : resolve(underpromise.asPromise(promises));
+          : resolve(lag.asPromise(promises));
       };
     });
   };
 };
 
-underpromise._partialize = function (callback) {
+lag._partialize = function (callback) {
   return function () {
-    var args = underpromise._args(arguments);
+    var args = lag._args(arguments);
     
     args.fn = args.fn || function (promise, resolve) {resolve();};
     
-    if (!args.promises) return underpromise.partial(function (fn, promises) {
-      var args = underpromise._args(arguments);
+    if (!args.promises) return lag.partial(function (fn, promises) {
+      var args = lag._args(arguments);
       return callback(args);
     }, args.fn);
       
@@ -136,62 +136,62 @@ underpromise._partialize = function (callback) {
   };
 };
 
-underpromise.promiseFirst = function () {
-  underpromise._promiseFirst = true;
-  underpromise._functionFirst = false;
+lag.promiseFirst = function () {
+  lag._promiseFirst = true;
+  lag._functionFirst = false;
 };
 
-underpromise.functionFirst = function () {
-  underpromise._promiseFirst = false;
-  underpromise._functionFirst = true;
+lag.functionFirst = function () {
+  lag._promiseFirst = false;
+  lag._functionFirst = true;
 };
 
 // Arrays
 
-underpromise._method('each', function (args) {
+lag._method('each', function (args) {
   var eachPromises = args.promises.map(function (promise, idx) {
     return args.fn(promise, idx);
   });
   
-  return underpromise.all(eachPromises);  
+  return lag.all(eachPromises);  
 });
 
-underpromise._method('eachSeries', function (args) {  var _shouldExit = false;
-  var currentPromise = underpromise.asPromise(true);
+lag._method('eachSeries', function (args) {  var _shouldExit = false;
+  var currentPromise = lag.asPromise(true);
   var promises = args.promises.map(function (promise, idx) {
     return currentPromise = currentPromise.then(function () {
       return args.fn(promise, idx);
     })
   });
     
-  return underpromise.all(promises);
+  return lag.all(promises);
 });
 
 
 ['map', 'mapSeries'].forEach(function (name) {
-  underpromise._method(name, function (args) {
-    return underpromise.promise(function (resolve, reject) {
+  lag._method(name, function (args) {
+    return lag.promise(function (resolve, reject) {
       var mapped = [];
       var each = (name === 'map') ? 'each' : 'eachSeries';
       
-      underpromise[each](function (promise, idx) {
+      lag[each](function (promise, idx) {
         return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
       }, args.promises).then(function () {
-        underpromise.all(mapped).then(resolve);
+        lag.all(mapped).then(resolve);
       }, reject);
     });
   });
 });
 
 
-underpromise._method('reduce', function (args) {
-  return underpromise.promise(function (resolve, reject) {
+lag._method('reduce', function (args) {
+  return lag.promise(function (resolve, reject) {
     var accum = args.promises.shift();
     
-    underpromise.eachSeries(function (promise, idx) {
-      return underpromise.promise(function (resolve, reject) {
+    lag.eachSeries(function (promise, idx) {
+      return lag.promise(function (resolve, reject) {
         args.fn(accum, promise, idx).then(function (val) {
-          accum = underpromise.asPromise(val);
+          accum = lag.asPromise(val);
           resolve();
         }, reject);
       });
@@ -201,48 +201,48 @@ underpromise._method('reduce', function (args) {
   });
 });
 
-underpromise._method('reduceRight', function (args) {
+lag._method('reduceRight', function (args) {
   args.promises = args.promises.reverse();
-  return underpromise.reduce(args);
+  return lag.reduce(args);
 });
 
 ['filter', 'filterSeries'].forEach(function (name) {
-  underpromise._method(name, function (args) {
-    return underpromise.promise(function (resolve, reject) {
+  lag._method(name, function (args) {
+    return lag.promise(function (resolve, reject) {
       var filtered = [];
       var each = (name === 'filter') ? 'each' : 'eachSeries';
       
-      underpromise[each](function (promise, idx) {
+      lag[each](function (promise, idx) {
         return args.fn(promise, idx).then(function (passed) {
           if (passed) filtered.push(promise);
         }, reject);
       }, args.promises).then(function () {
-        underpromise.all(filtered).then(resolve);
+        lag.all(filtered).then(resolve);
       }, reject);
     });
   });
 });
 
 ['reject', 'rejectSeries'].forEach(function (name) {
-  underpromise._method(name, function (args) {
+  lag._method(name, function (args) {
     var filter = (name === 'reject') ? 'filter' : 'filterSeries';
     
-    return underpromise[filter](function (promise, idx) {
+    return lag[filter](function (promise, idx) {
       return args.fn(promise, idx)
-        .then(underpromise.inverseBoolean);
+        .then(lag.inverseBoolean);
     }, args.promises);
   });
 });
 
 
 ['find', 'findSeries'].forEach(function (name) {
-  underpromise._method(name, function (args) {
-    return underpromise.promise(function (resolve, reject) {
+  lag._method(name, function (args) {
+    return lag.promise(function (resolve, reject) {
       var wanted;
       var each = (name === 'find') ? 'each': 'eachSeries';
       
       
-      underpromise[each](function (promise, idx) {
+      lag[each](function (promise, idx) {
         var self = this;
         return args.fn(promise, idx).then(function (passed) {
           
@@ -262,29 +262,29 @@ underpromise._method('reduceRight', function (args) {
 });
 
 
-underpromise.compact = underpromise.filter(underpromise.boolean);
+lag.compact = lag.filter(lag.boolean);
 
-underpromise.first = function (promises) {
-  return underpromise.asPromise(asArray(promises).shift());
+lag.first = function (promises) {
+  return lag.asPromise(asArray(promises).shift());
 };
 
-underpromise.last = function (promises) {
-  return underpromise.asPromise(promises.pop());
+lag.last = function (promises) {
+  return lag.asPromise(promises.pop());
 };
 
-underpromise.initial = function (promises) {
-  return underpromise.all(promises.slice(0, promises.length-1));
+lag.initial = function (promises) {
+  return lag.all(promises.slice(0, promises.length-1));
 };
 
-underpromise.rest = function (promises) {
-  return underpromise.all(promises.slice(1));
+lag.rest = function (promises) {
+  return lag.all(promises.slice(1));
 };
 
 // Collections
 
-underpromise._method('pluck', function (args) {
-  return underpromise.promise(function (resolve, reject) {
-    underpromise.all(args.promises).then(function (res) {
+lag._method('pluck', function (args) {
+  return lag.promise(function (resolve, reject) {
+    lag.all(args.promises).then(function (res) {
       resolve(res.map(function (obj) {
         return obj[args.fn];
       }));
@@ -293,12 +293,12 @@ underpromise._method('pluck', function (args) {
 });
 
 ['where', 'findWhere'].forEach(function (name) {
-  underpromise._method(name, function (args) {
+  lag._method(name, function (args) {
     var where = args.fn;
     var keys = Object.keys(where);
     var find = (name === 'where') ? 'filter': 'find';
     
-    return underpromise[find](function (promise) {
+    return lag[find](function (promise) {
       return promise.then(function (obj) {
         var matching = false;
         
@@ -306,84 +306,84 @@ underpromise._method('pluck', function (args) {
           if (obj[key] === where[key]) matching = true;
         });
         
-        return underpromise.asPromise(matching);
+        return lag.asPromise(matching);
         });
     }, args.promises)
   });
 });
 
-underpromise.every = function (promises) {
-  return underpromise.compact(promises).then(function (compacted) {
-    return underpromise.asPromise(promises.length === compacted.length);
+lag.every = function (promises) {
+  return lag.compact(promises).then(function (compacted) {
+    return lag.asPromise(promises.length === compacted.length);
   });
 };
 
-underpromise.some = function (promises) {
-  return underpromise
-    .find(underpromise.boolean, promises)
-    .then(underpromise.boolean);
+lag.some = function (promises) {
+  return lag
+    .find(lag.boolean, promises)
+    .then(lag.boolean);
 };
 
-underpromise._method('contains', function (args) {
+lag._method('contains', function (args) {
   var value = args.fn;
   
-  return underpromise
-    .find(underpromise.equal(value), args.promises)
-    .then(underpromise.boolean);
+  return lag
+    .find(lag.equal(value), args.promises)
+    .then(lag.boolean);
 });
 
 // Objects
 
-underpromise.keys = function (promise) {
-  return underpromise.first(promise)
+lag.keys = function (promise) {
+  return lag.first(promise)
     .then(function (obj) {
-      return underpromise.asPromise(Object.keys(obj));
+      return lag.asPromise(Object.keys(obj));
     });
 };
 
 
-underpromise.values = function (promise) {
-  return underpromise.first(promise)
+lag.values = function (promise) {
+  return lag.first(promise)
     .then(function (obj) {
       var values = Object.keys(obj).map(function (key) {
         return obj[key];
       });
     
-      return underpromise.asPromise(values);
+      return lag.asPromise(values);
     });
 };
 
-underpromise._partializedMethod('extend', function () {
-  return underpromise
-    .map(underpromise.identity, flatten(arguments))
+lag._partializedMethod('extend', function () {
+  return lag
+    .map(lag.identity, flatten(arguments))
     .then(function (objects) {
-      return underpromise.asPromise(extend.apply(null, objects));
+      return lag.asPromise(extend.apply(null, objects));
     });
 });
 
-underpromise._partializedMethod('defaults', function () {
-  return underpromise
-    .map(underpromise.identity, flatten(arguments).reverse())
+lag._partializedMethod('defaults', function () {
+  return lag
+    .map(lag.identity, flatten(arguments).reverse())
     .then(function (objects) {
-      return underpromise.asPromise(defaults.apply(null, objects));
+      return lag.asPromise(defaults.apply(null, objects));
     });
 });
 
 // Utilities
 
-underpromise._method('equal', function (args) {
-  return underpromise
+lag._method('equal', function (args) {
+  return lag
     .all(args.fn, args.promises[0])
     .then(function (values) {
-      return underpromise.asPromise(values[0] === values[1]);
+      return lag.asPromise(values[0] === values[1]);
     });
 });
 
-underpromise.log = function (promise) {
+lag.log = function (promise) {
   return promise.then(function (val) {
     console.log(val);
-    return underpromise.asPromise(val);
+    return lag.asPromise(val);
   });
 };
 
-module.exports = underpromise;
+module.exports = lag;
