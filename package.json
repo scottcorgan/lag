@@ -1,6 +1,6 @@
 {
   "name": "lag",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Functionally handle promises",
   "main": "index.js",
   "scripts": {

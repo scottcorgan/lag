@@ -4,7 +4,6 @@ var asArray = require('as-array');
 var extend = require('extend');
 var defaults = require('defaults');
 var flatten = require('flat-arguments');
-var clone = require('clone');
 var zipObject = require('zip-object');
 
 var lag = {
