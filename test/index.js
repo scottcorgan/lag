@@ -801,12 +801,13 @@ describe('utilities', function () {
   });
   
   it('#greaterThan()', function (done) {
-    var promise = lag.asPromise(123);
+    var promise1 = lag.asPromise(123);
+    var promise2 = lag.asPromise(100);
     
-    lag.greaterThan(100, promise).then(function (isGreater) {
+    lag.greaterThan(promise2, promise1).then(function (isGreater) {
       expect(isGreater).to.equal(true);
       done();
-    });
+    }).done();
   });
   
   it('#lessThan()', function (done) {
@@ -818,21 +819,21 @@ describe('utilities', function () {
     });
   });
   
-  // TODO: this should add 2 promises
-  
   it('#add()', function (done) {
-    var promise = lag.asPromise(123);
+    var promise1 = lag.asPromise(123);
+    var promise2 = lag.asPromise(1);
     
-    lag.add(1, promise).then(function (val) {
+    lag.add(promise2, promise1).then(function (val) {
       expect(val).to.equal(124);
       done();
     }).done();
   });
   
   it('#subtract()', function (done) {
-    var promise = lag.asPromise(123);
+    var promise1 = lag.asPromise(123);
+    var promise2 = lag.asPromise(1);
     
-    lag.subtract(1, promise).then(function (val) {
+    lag.subtract(promise2, promise1).then(function (val) {
       expect(val).to.equal(122);
       done();
     }).done();

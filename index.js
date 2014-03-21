@@ -453,43 +453,33 @@ lag.zipObject = function (arr1, arr2) {
 
 // Utilities
 
-lag._method('equal', function (args) {
-  return lag
-    .all(args.fn, args.promises[0])
-    .then(function (values) {
-      return lag.asPromise(values[0] === values[1]);
-    });
+lag._method('equal', function (args) {  
+  return lag.all(args.fn, args.promises[0]).then(function (values) {
+    return lag.asPromise(values[0] === values[1]);
+  });
 });
 
 lag._method('greaterThan', function (args) {
-  var targetValue = args.fn;
-  
-  return  lag.first(args.promises).then(function (val) {
-    return lag.asPromise(val > targetValue);
+  return lag.all(args.fn, args.promises[0]).then(function (values) {
+    return lag.asPromise(values[0] < values[1])
   });
 });
 
 lag._method('lessThan', function (args) {
-  var targetValue = args.fn;
-  
-  return  lag.first(args.promises).then(function (val) {
-    return lag.asPromise(val < targetValue);
+  return lag.all(args.fn, args.promises[0]).then(function (values) {
+    return lag.asPromise(values[0] > values[1])
   });
 });
 
 lag._method('add', function (args) {
-  var adder = args.fn;
-  
-  return lag.first(args.promises).then(function (val) {
-    return lag.asPromise(adder + val);
+  return lag.all(args.fn, args.promises[0]).then(function (values) {
+    return lag.asPromise(values[0] + values[1])
   });
 });
 
 lag._method('subtract', function (args) {
-  var adder = args.fn;
-  
-  return lag.first(args.promises).then(function (val) {
-    return lag.asPromise(val - adder);
+  return lag.all(args.fn, args.promises[0]).then(function (values) {
+    return lag.asPromise(values[1] - values[0])
   });
 });
 
