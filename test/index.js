@@ -1,5 +1,4 @@
 var expect = require('expect.js');
-var sinon = require('sinon');
 var lag = require('../');
 var clone = require('clone');
 var Promise = require('promise');
