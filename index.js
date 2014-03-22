@@ -1,8 +1,6 @@
 var Promise = require('promise');
-var isPromise = require('is-promise');
 var asArray = require('as-array');
 var extend = require('extend');
-var defaults = require('defaults');
 var flatten = require('flat-arguments');
 var zipObject = require('zip-object');
 
@@ -173,6 +171,10 @@ _.compose = function () {
       };
     });
   };
+};
+
+_._isPromise = function (obj) {
+  return obj && typeof obj.then === 'function';
 };
 
 _.promiseFirst = function () {
@@ -513,3 +515,15 @@ _.log = function (promise) {
 };
 
 module.exports = _;
+
+function defaults (options, defaults) {
+  options = options || {};
+
+  Object.keys(defaults).forEach(function(key) {
+    if (typeof options[key] === 'undefined') {
+      options[key] = defaults[key];
+    }
+  });
+
+  return options;
+};
