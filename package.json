@@ -4,7 +4,7 @@
   "description": "Functionally handle promises",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/"
+    "test": "mocha test/ --reporter spec"
   },
   "repository": {
     "type": "git",

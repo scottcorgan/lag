@@ -6,31 +6,31 @@ var defaults = require('defaults');
 var flatten = require('flat-arguments');
 var zipObject = require('zip-object');
 
-var lag = {
+var _ = {
   _promiseFirst: false,
   _functionFirst: true
 };
 
 // (fn, promise) syntax
-lag._method = function (name, fn) {
+_._method = function (name, fn) {
   var method = this[name] = this._partialize(fn);
   return method;
 };
 
 // unlimited arguments syntax, but only one passed to initial partial
-lag._partializedMethod = function (name, fn) {
-  return lag[name] = function () {
+_._partializedMethod = function (name, fn) {
+  return _[name] = function () {
     // if (arguments.length === 1) {
       
     var args = flatten(asArray(arguments));
     
     // Promises or functions first?
-    if (lag._promiseFirst) args = args.reverse();
+    if (_._promiseFirst) args = args.reverse();
     
     // If last argument isn't a promise, this is a partial
     if (args.length === 1) {
-      return lag.partial(function () {
-        return lag[name].apply(null, asArray(arguments));
+      return _.partial(function () {
+        return _[name].apply(null, asArray(arguments));
       }, args);
     }
     
@@ -38,27 +38,26 @@ lag._partializedMethod = function (name, fn) {
   };
 };
 
-lag._fnFromArgs = function (args) {
+_._fnFromArgs = function (args) {
   var fn;
   
-  if (lag._promiseFirst) fn = args[args.length - 1];
+  if (_._promiseFirst) fn = args[args.length - 1];
   else fn = args[0];
-  
   
   return fn;
 };
 
-lag._promisesFromArgs = function (args) {
+_._promisesFromArgs = function (args) {
   var promises;
   
   if (!args[1]) return; // No promises
-  if (lag._promiseFirst) promises =  flatten([].slice.call(args, 0, args.length -1));
+  if (_._promiseFirst) promises =  flatten([].slice.call(args, 0, args.length -1));
   else promises = flatten([].slice.call(args, 1));
   
   return promises;
 };
 
-lag._args = function (args) {
+_._args = function (args) {
   var _args = {};
   
   // object
@@ -69,8 +68,8 @@ lag._args = function (args) {
   
   // probably multiple arguments
   if (args.length >= 1 && !args[0].fn) {
-    _args.fn = lag._fnFromArgs(args);
-    _args.promises = lag._promisesFromArgs(args);
+    _args.fn = _._fnFromArgs(args);
+    _args.promises = _._promisesFromArgs(args);
   }
   
   // _args =  {
@@ -82,7 +81,7 @@ lag._args = function (args) {
   //     : (args[1]) ? flatten(asArray(args).slice(1)) : undefined // handles passing in any number of promises
   // };
 
-  // if (lag._promiseFirst) {
+  // if (_._promiseFirst) {
   //   var fn = _args.fn;
   //   var promises = _args.promises;
     
@@ -94,26 +93,41 @@ lag._args = function (args) {
   
   // Trun all values into promises
   if (_args.promises) {
-    _args.promises = asArray(_args.promises).map(lag.asPromise);
+    _args.promises = asArray(_args.promises).map(_.asPromise);
   }
   
   return _args;
 };
 
-lag.promise = function (fn) {
+_._partialize = function (callback) {
+  return function () {
+    var args = _._args(arguments);
+    
+    args.fn = args.fn || function (promise, resolve) {resolve();};
+    
+    if (!args.promises) return _.partial(function (fn, promises) {
+      var args = _._args(arguments);
+      return callback(args);
+    }, args.fn);
+      
+    return callback(args);
+  };
+};
+
+_.promise = function (fn) {
   fn = fn || function () {};
   return new Promise(fn);
 };
 
-lag.asPromise = function (value) {
+_.asPromise = function (value) {
   return Promise.from(value);
 };
 
-lag.all = function () {
+_.all = function () {
   return Promise.all.apply(Promise, asArray(arguments));
 };
 
-lag.partial = function () {
+_.partial = function () {
   var partialArgs = asArray(arguments);
   var fn = partialArgs.shift();
   
@@ -123,31 +137,31 @@ lag.partial = function () {
   };
 };
 
-lag.identity = function () {
+_.identity = function () {
   return arguments[0];
 };
 
-lag.boolean = function (promise) {
-  return lag
+_.boolean = function (promise) {
+  return _
     .asPromise(promise)
     .then(function (val) {
-      return lag.asPromise(!!val);
+      return _.asPromise(!!val);
     });
 };
 
-lag.inverseBoolean = function (promise) {
-  return lag.asPromise(promise)
-    .then(lag.boolean)
+_.inverseBoolean = function (promise) {
+  return _.asPromise(promise)
+    .then(_.boolean)
     .then(function (val) {
-      return lag.asPromise(!val);
+      return _.asPromise(!val);
     });
 };
 
-lag.compose = function () {
+_.compose = function () {
   var fns = asArray(arguments).reverse();
   
   return function (promises) {
-    return lag.promise(function (resolve, reject) {
+    return _.promise(function (resolve, reject) {
       executeFunction(promises)
 
       function executeFunction (promises) {
@@ -155,83 +169,68 @@ lag.compose = function () {
         
         return fn
           ? fn(promises).then(executeFunction, reject)
-          : resolve(lag.asPromise(promises));
+          : resolve(_.asPromise(promises));
       };
     });
   };
 };
 
-lag._partialize = function (callback) {
-  return function () {
-    var args = lag._args(arguments);
-    
-    args.fn = args.fn || function (promise, resolve) {resolve();};
-    
-    if (!args.promises) return lag.partial(function (fn, promises) {
-      var args = lag._args(arguments);
-      return callback(args);
-    }, args.fn);
-      
-    return callback(args);
-  };
+_.promiseFirst = function () {
+  _._promiseFirst = true;
+  _._functionFirst = false;
 };
 
-lag.promiseFirst = function () {
-  lag._promiseFirst = true;
-  lag._functionFirst = false;
-};
-
-lag.functionFirst = function () {
-  lag._promiseFirst = false;
-  lag._functionFirst = true;
+_.functionFirst = function () {
+  _._promiseFirst = false;
+  _._functionFirst = true;
 };
 
 // Arrays
 
-lag._method('each', function (args) {
+_._method('each', function (args) {
   var eachPromises = args.promises.map(function (promise, idx) {
     return args.fn(promise, idx);
   });
   
-  return lag.all(eachPromises);  
+  return _.all(eachPromises);  
 });
 
-lag._method('eachSeries', function (args) {  var _shouldExit = false;
-  var currentPromise = lag.asPromise(true);
+_._method('eachSeries', function (args) {  var _shouldExit = false;
+  var currentPromise = _.asPromise(true);
   var promises = args.promises.map(function (promise, idx) {
     return currentPromise = currentPromise.then(function () {
       return args.fn(promise, idx);
     })
   });
     
-  return lag.all(promises);
+  return _.all(promises);
 });
 
 
 ['map', 'mapSeries'].forEach(function (name) {
-  lag._method(name, function (args) {
-    return lag.promise(function (resolve, reject) {
+  _._method(name, function (args) {
+    return _.promise(function (resolve, reject) {
       var mapped = [];
       var each = (name === 'map') ? 'each' : 'eachSeries';
       
-      lag[each](function (promise, idx) {
+      _[each](function (promise, idx) {
         return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
       }, args.promises).then(function () {
-        lag.all(mapped).then(resolve);
+        _.all(mapped).then(resolve);
       }, reject);
     });
   });
 });
 
 
-lag._method('reduce', function (args) {
-  return lag.promise(function (resolve, reject) {
+_._method('reduce', function (args) {
+  return _.promise(function (resolve, reject) {
     var accum = args.promises.shift();
     
-    lag.eachSeries(function (promise, idx) {
-      return lag.promise(function (resolve, reject) {
+    _.eachSeries(function (promise, idx) {
+      return _.promise(function (resolve, reject) {
         args.fn(accum, promise, idx).then(function (val) {
-          accum = lag.asPromise(val);
+          accum = _.asPromise(val);
           resolve();
         }, reject);
       });
@@ -241,48 +240,48 @@ lag._method('reduce', function (args) {
   });
 });
 
-lag._method('reduceRight', function (args) {
+_._method('reduceRight', function (args) {
   args.promises = args.promises.reverse();
-  return lag.reduce(args);
+  return _.reduce(args);
 });
 
 ['filter', 'filterSeries'].forEach(function (name) {
-  lag._method(name, function (args) {
-    return lag.promise(function (resolve, reject) {
+  _._method(name, function (args) {
+    return _.promise(function (resolve, reject) {
       var filtered = [];
       var each = (name === 'filter') ? 'each' : 'eachSeries';
       
-      lag[each](function (promise, idx) {
+      _[each](function (promise, idx) {
         return args.fn(promise, idx).then(function (passed) {
           if (passed) filtered.push(promise);
         }, reject);
       }, args.promises).then(function () {
-        lag.all(filtered).then(resolve);
+        _.all(filtered).then(resolve);
       }, reject);
     });
   });
 });
 
 ['reject', 'rejectSeries'].forEach(function (name) {
-  lag._method(name, function (args) {
+  _._method(name, function (args) {
     var filter = (name === 'reject') ? 'filter' : 'filterSeries';
     
-    return lag[filter](function (promise, idx) {
+    return _[filter](function (promise, idx) {
       return args.fn(promise, idx)
-        .then(lag.inverseBoolean);
+        .then(_.inverseBoolean);
     }, args.promises);
   });
 });
 
 
 ['find', 'findSeries'].forEach(function (name) {
-  lag._method(name, function (args) {
-    return lag.promise(function (resolve, reject) {
+  _._method(name, function (args) {
+    return _.promise(function (resolve, reject) {
       var wanted;
       var each = (name === 'find') ? 'each': 'eachSeries';
       
       
-      lag[each](function (promise, idx) {
+      _[each](function (promise, idx) {
         var self = this;
         return args.fn(promise, idx).then(function (passed) {
           
@@ -302,60 +301,60 @@ lag._method('reduceRight', function (args) {
 });
 
 
-lag.compact = lag.filter(lag.boolean);
+_.compact = _.filter(_.boolean);
 
-lag.first = function (promises) {
-  return lag.asPromise(asArray(promises)[0]);
+_.first = function (promises) {
+  return _.asPromise(asArray(promises)[0]);
 };
 
-lag.firstValue = function (promise) {
-  return lag.first(promise).then(function (arr) {
-    return lag.asPromise(asArray(arr)[0]);
+_.firstValue = function (promise) {
+  return _.first(promise).then(function (arr) {
+    return _.asPromise(asArray(arr)[0]);
   });
 };
 
-lag.last = function (promises) {
-  return lag.asPromise(promises[promises.length - 1]);
+_.last = function (promises) {
+  return _.asPromise(promises[promises.length - 1]);
 };
 
-lag.lastValue = function (promise) {
-  return lag.first(promise).then(function (arr) {
+_.lastValue = function (promise) {
+  return _.first(promise).then(function (arr) {
     arr = asArray(arr);
-    return lag.asPromise(arr[arr.length - 1]);
+    return _.asPromise(arr[arr.length - 1]);
   });
 };
 
-lag.initial = function (promises) {
-  return lag.all(promises.slice(0, promises.length-1));
+_.initial = function (promises) {
+  return _.all(promises.slice(0, promises.length-1));
 };
 
-lag.initialValues = function (promise) {
-  return lag.first(promise).then(function (arr) {
+_.initialValues = function (promise) {
+  return _.first(promise).then(function (arr) {
     arr = asArray(arr);
-    return lag.asPromise(arr.slice(0, arr.length-1));
+    return _.asPromise(arr.slice(0, arr.length-1));
   });
 };
 
-lag.tail = function (promises) {
-  return lag.all(promises.slice(1));
+_.tail = function (promises) {
+  return _.all(promises.slice(1));
 };
 
-lag.tailValues = function (promise) {
-  return lag.first(promise).then(function (arr) {
+_.tailValues = function (promise) {
+  return _.first(promise).then(function (arr) {
     arr = asArray(arr);
-    return lag.asPromise(arr.slice(1));
+    return _.asPromise(arr.slice(1));
   });
 };
 
 // Collections
 
 ['where', 'findWhere'].forEach(function (name) {
-  lag._method(name, function (args) {
+  _._method(name, function (args) {
     var where = args.fn;
     var keys = Object.keys(where);
     var find = (name === 'where') ? 'filter': 'find';
     
-    return lag[find](function (promise) {
+    return _[find](function (promise) {
       return promise.then(function (obj) {
         var matching = false;
         
@@ -363,157 +362,154 @@ lag.tailValues = function (promise) {
           if (obj[key] === where[key]) matching = true;
         });
         
-        return lag.asPromise(matching);
+        return _.asPromise(matching);
         });
     }, args.promises)
   });
 });
 
-lag._method('pluck', function (args) {
-  return lag.all(args.promises).then(function (res) {
-    return lag.asPromise(res.map(function (obj) {
+_._method('pluck', function (args) {
+  return _.all(args.promises).then(function (res) {
+    return _.asPromise(res.map(function (obj) {
       return obj[args.fn];
     }));
   });
 });
 
-lag.every = function (promises) {
-  return lag.compact(promises).then(function (compacted) {
-    return lag.asPromise(promises.length === compacted.length);
+_.every = function (promises) {
+  return _.compact(promises).then(function (compacted) {
+    return _.asPromise(promises.length === compacted.length);
   });
 };
 
-lag.some = function (promises) {
-  return lag
-    .find(lag.boolean, promises)
-    .then(lag.boolean);
+_.some = function (promises) {
+  return _
+    .find(_.boolean, promises)
+    .then(_.boolean);
 };
 
-lag._method('contains', function (args) {
+_._method('contains', function (args) {
   var value = args.fn;
   
-  return lag
-    .find(lag.equal(value), args.promises)
-    .then(lag.boolean);
+  return _
+    .find(_.equal(value), args.promises)
+    .then(_.boolean);
 });
 
 // Objects
 
-lag.keys = function (promise) {
-  return lag.first(promise)
+_.keys = function (promise) {
+  return _.first(promise)
     .then(function (obj) {
-      return lag.asPromise(Object.keys(obj));
+      return _.asPromise(Object.keys(obj));
     });
 };
 
 
-lag.values = function (promise) {
-  return lag.first(promise)
+_.values = function (promise) {
+  return _.first(promise)
     .then(function (obj) {
       var values = Object.keys(obj).map(function (key) {
         return obj[key];
       });
     
-      return lag.asPromise(values);
+      return _.asPromise(values);
     });
 };
 
-lag._partializedMethod('extend', function () {
-  return lag
-    .map(lag.identity, flatten(arguments))
+_._partializedMethod('extend', function () {
+  return _
+    .map(_.identity, flatten(arguments))
     .then(function (objects) {
-      return lag.asPromise(extend.apply(null, objects));
+      return _.asPromise(extend.apply(null, objects));
     });
 });
 
-lag._partializedMethod('defaults', function () {
-  return lag
-    .map(lag.identity, flatten(arguments).reverse())
+_._partializedMethod('defaults', function () {
+  return _
+    .map(_.identity, flatten(arguments).reverse())
     .then(function (objects) {
-      return lag.asPromise(defaults.apply(null, objects));
+      return _.asPromise(defaults.apply(null, objects));
     });
 });
 
 // TODO: make these
-// lag._methodWithMultipleFns
-// lag._methodWithMultiplePromises
+// _._methodWithMultipleFns
+// _._methodWithMultiplePromises
 
-lag._partializedMethod('pick', function () {
+_._partializedMethod('pick', function () {
   var args = asArray(arguments);
   
-  return lag.last(args).then(function (obj) {
-    return lag.initial(args).then(function (keys) {
+  return _.last(args).then(function (obj) {
+    return _.initial(args).then(function (keys) {
       var returnObj = {};
       
       keys.forEach(function (key) {
         returnObj[key] = obj[key];
       });
       
-      return lag.asPromise(returnObj);
+      return _.asPromise(returnObj);
     });
   });
 });
 
-lag._partializedMethod('omit', function () {
+_._partializedMethod('omit', function () {
   var args = asArray(arguments);
   
-  return lag.last(args).then(function (obj) {
-    return lag.initial(args).then(function (keysToRemove) {      
+  return _.last(args).then(function (obj) {
+    return _.initial(args).then(function (keysToRemove) {      
       
-      var keys = lag.reject(function (key) {
-        return lag.contains(key, keysToRemove);
+      var keys = _.reject(function (key) {
+        return _.contains(key, keysToRemove);
       }, Object.keys(obj));
       
-      return lag.pick(keys, obj);
+      return _.pick(keys, obj);
     });
   });
 });
 
-lag.zipObject = function (arr1, arr2) {
-  return arr1.then(function (keys) {
-    return arr2.then(function (values) {
-      return lag.asPromise(zipObject(keys, values));
+_.zipObject = function (arr1, arr2) {
+  return _.all(arr1, arr2)
+    .then(function (values) {
+      return _.asPromise(zipObject.apply(null, values));
     });
-  });
 };
 
 // Utilities
 
-lag._method('equal', function (args) {  
-  return lag.all(args.fn, args.promises[0]).then(function (values) {
-    return lag.asPromise(values[0] === values[1]);
-  });
-});
+_._method('equal', executeOnValues(function (a, b) {
+  return a === b;
+}));
 
-lag._method('greaterThan', function (args) {
-  return lag.all(args.fn, args.promises[0]).then(function (values) {
-    return lag.asPromise(values[0] < values[1])
-  });
-});
+_._method('greaterThan', executeOnValues(function (a, b) {
+  return a < b;
+}));
 
-lag._method('lessThan', function (args) {
-  return lag.all(args.fn, args.promises[0]).then(function (values) {
-    return lag.asPromise(values[0] > values[1])
-  });
-});
+_._method('lessThan', executeOnValues(function (a, b) {
+  return a > b;
+}));
 
-lag._method('add', function (args) {
-  return lag.all(args.fn, args.promises[0]).then(function (values) {
-    return lag.asPromise(values[0] + values[1])
-  });
-});
+_._method('add', executeOnValues(function (a, b) {
+  return a + b;
+}));
 
-lag._method('subtract', function (args) {
-  return lag.all(args.fn, args.promises[0]).then(function (values) {
-    return lag.asPromise(values[1] - values[0])
-  });
-});
+_._method('subtract', executeOnValues(function (a, b) {
+  return b - a;
+}));
 
-lag.log = function (promise) {
+function executeOnValues(callback) {
+  return function (args) {
+    return _.all(args.fn, args.promises[0]).then(function (values) {
+      return _.asPromise(callback(values[0], values[1]));
+    });
+  };
+}
+
+_.log = function (promise) {
   return promise.then(function (val) {
     console.log(val);
-    return lag.asPromise(val);
+    return _.asPromise(val);
   });
 };
 
-module.exports = lag;
+module.exports = _;
