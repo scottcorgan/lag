@@ -73,6 +73,8 @@ _.map(_.add(1), promises)
   * [initialValues](#initialvaluespromise)
   * [tail](#tailpromises)
   * [tailValues](#tailvaluespromise)
+  * [reverse](#reversepromises)
+  * [reverseValues](#reversevaluespromise)
   * [compact](#compactpromises)
 * **[Collections](#collections)**
   * [where](#whereobject-promises)
@@ -94,6 +96,9 @@ _.map(_.add(1), promises)
   * [equal](#equalpromise1-promise2)
   * [add](#addnumber-promise)
   * [subtract](#subtractnumber-promise)
+* **[Strings](#strings)**
+  * [prepend](#prependpromise)
+  * [append](#appendpromise)
 * **[Utilities](#utilities)**
   * [promise](#promisefunction)
   * [asPromise](#aspromisevalue)
@@ -146,6 +151,10 @@ _.map(_.add(1), promises)
 
 ### tailValues(promise)
 
+### reverse(promises)
+
+### reverseValues(promise)
+
 ### compact(promises)
 
 
@@ -190,6 +199,13 @@ _.map(_.add(1), promises)
 ### add(number, promise)
 
 ### subtract(number, promise)
+
+
+## Strings
+
+### prepend(promise)
+
+### append(promise)
 
 
 ## Utilities

@@ -455,6 +455,20 @@ _.zipObject = function (arr1, arr2) {
     });
 };
 
+// Strings
+
+_._method('prepend', function (args) {
+  return _.first(args.promises).then(function (val) {
+    return _.asPromise('' + args.fn + val + '');
+  });
+});
+
+_._method('append', function (args) {
+  return _.first(args.promises).then(function (val) {
+    return _.asPromise('' + val + args.fn + '');
+  });
+});
+
 // Utilities
 
 _._method('equal', operateOnValues(function (a, b) {
