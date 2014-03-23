@@ -602,6 +602,26 @@ describe('arrays', function () {
     }).done();
   });
   
+  it('#reverse()', function (done) {
+    var promises = [
+      lag.asPromise(123),
+      lag.asPromise(456),
+      lag.asPromise(789)
+    ];
+    
+    lag.reverse(promises).then(function (res) {
+      expect(res).to.eql([789,456,123]);
+      done();
+    }).done();
+  });
+  
+  it('#reverseValues()', function (done) {
+    lag.reverseValues(lag.asPromise([1,2,3])).then(function (arr) {
+      expect(arr).to.eql([3,2,1]);
+      done();
+    }).done();
+  });
+  
 });
 
 describe('collections', function () {

@@ -70,25 +70,6 @@ _._args = function (args) {
     _args.promises = _._promisesFromArgs(args);
   }
   
-  // _args =  {
-  //   fn: (args[0] && args[0].fn) // are the args an object?
-  //     ? args[0].fn
-  //     : args[0],
-  //   promises: (args[0] && args[0].promises) // are the args an object?
-  //     ? args[0].promises      // : args[1]
-  //     : (args[1]) ? flatten(asArray(args).slice(1)) : undefined // handles passing in any number of promises
-  // };
-
-  // if (_._promiseFirst) {
-  //   var fn = _args.fn;
-  //   var promises = _args.promises;
-    
-  //   _args = {
-  //     fn: promises,
-  //     promises: fn
-  //   };
-  // }
-  
   // Trun all values into promises
   if (_args.promises) {
     _args.promises = asArray(_args.promises).map(_.asPromise);
@@ -113,8 +94,7 @@ _._partialize = function (callback) {
 };
 
 _.promise = function (fn) {
-  fn = fn || function () {};
-  return new Promise(fn);
+  return new Promise(fn || function () {});
 };
 
 _.asPromise = function (value) {
@@ -211,34 +191,30 @@ _._method('eachSeries', function (args) {  var _shouldExit = false;
 
 ['map', 'mapSeries'].forEach(function (name) {
   _._method(name, function (args) {
-    return _.promise(function (resolve, reject) {
-      var mapped = [];
-      var each = (name === 'map') ? 'each' : 'eachSeries';
-      
-      _[each](function (promise, idx) {
-        return args.fn(promise, idx).then(mapped.push.bind(mapped), reject);
-      }, args.promises).then(function () {
-        _.all(mapped).then(resolve);
-      }, reject);
+    var mapped = [];
+    var each = (name === 'map') ? 'each' : 'eachSeries';
+    
+    return _[each](function (promise, idx) {
+      return args.fn(promise, idx).then(mapped.push.bind(mapped));
+    }, args.promises).then(function () {
+      return _.all(mapped);
     });
   });
 });
 
 
 _._method('reduce', function (args) {
-  return _.promise(function (resolve, reject) {
-    var accum = args.promises.shift();
-    
-    _.eachSeries(function (promise, idx) {
-      return _.promise(function (resolve, reject) {
-        args.fn(accum, promise, idx).then(function (val) {
-          accum = _.asPromise(val);
-          resolve();
-        }, reject);
+  var accum = args.promises.shift();
+  
+  return _.eachSeries(function (promise, idx) {
+    return _.promise(function (resolve, reject) {
+      args.fn(accum, promise, idx).then(function (val) {
+        accum = _.asPromise(val);
+        resolve();
       });
-    }, args.promises).then(function () {
-      resolve(accum);
-    }, reject);
+    });
+  }, args.promises).then(function () {
+    return _.asPromise(accum);
   });
 });
 
@@ -249,17 +225,15 @@ _._method('reduceRight', function (args) {
 
 ['filter', 'filterSeries'].forEach(function (name) {
   _._method(name, function (args) {
-    return _.promise(function (resolve, reject) {
-      var filtered = [];
-      var each = (name === 'filter') ? 'each' : 'eachSeries';
-      
-      _[each](function (promise, idx) {
-        return args.fn(promise, idx).then(function (passed) {
-          if (passed) filtered.push(promise);
-        }, reject);
-      }, args.promises).then(function () {
-        _.all(filtered).then(resolve);
-      }, reject);
+    var filtered = [];
+    var each = (name === 'filter') ? 'each' : 'eachSeries';
+    
+    return _[each](function (promise, idx) {
+      return args.fn(promise, idx).then(function (passed) {
+        if (passed) filtered.push(promise);
+      });
+    }, args.promises).then(function () {
+      return _.all(filtered);
     });
   });
 });
@@ -278,26 +252,20 @@ _._method('reduceRight', function (args) {
 
 ['find', 'findSeries'].forEach(function (name) {
   _._method(name, function (args) {
-    return _.promise(function (resolve, reject) {
-      var wanted;
-      var each = (name === 'find') ? 'each': 'eachSeries';
-      
-      
-      _[each](function (promise, idx) {
-        var self = this;
-        return args.fn(promise, idx).then(function (passed) {
-          
-          // FIXME: this leaves some promises hanging
-          // when no values match
-          
-          // if (passed && !wanted) resolve(promise);
-          if (passed && !wanted) wanted = promise;
-        }, reject);
-      }, args.promises).then(function () {
-        resolve(wanted);
+    var wanted;
+    var each = (name === 'find') ? 'each': 'eachSeries';
+    
+    return _[each](function (promise, idx) {
+      return args.fn(promise, idx).then(function (passed) {
+        
+        // FIXME: this leaves some promises hanging
+        // when no values match
+        
+        // if (passed && !wanted) resolve(promise);
+        if (passed && !wanted) wanted = promise;
       });
-      
-      
+    }, args.promises).then(function () {
+      return _.asPromise(wanted);
     });
   });
 });
@@ -345,6 +313,16 @@ _.tailValues = function (promise) {
   return _.first(promise).then(function (arr) {
     arr = asArray(arr);
     return _.asPromise(arr.slice(1));
+  });
+};
+
+_.reverse = function (promises) {
+  return _.all(promises.reverse());
+};
+
+_.reverseValues = function (promise) {
+  return _.first(promise).then(function (arr) {
+    return _.asPromise(arr.reverse());
   });
 };
 
@@ -479,30 +457,30 @@ _.zipObject = function (arr1, arr2) {
 
 // Utilities
 
-_._method('equal', executeOnValues(function (a, b) {
+_._method('equal', operateOnValues(function (a, b) {
   return a === b;
 }));
 
-_._method('greaterThan', executeOnValues(function (a, b) {
+_._method('greaterThan', operateOnValues(function (a, b) {
   return a < b;
 }));
 
-_._method('lessThan', executeOnValues(function (a, b) {
+_._method('lessThan', operateOnValues(function (a, b) {
   return a > b;
 }));
 
-_._method('add', executeOnValues(function (a, b) {
+_._method('add', operateOnValues(function (a, b) {
   return a + b;
 }));
 
-_._method('subtract', executeOnValues(function (a, b) {
+_._method('subtract', operateOnValues(function (a, b) {
   return b - a;
 }));
 
-function executeOnValues(callback) {
+function operateOnValues(operation) {
   return function (args) {
     return _.all(args.fn, args.promises[0]).then(function (values) {
-      return _.asPromise(callback(values[0], values[1]));
+      return _.asPromise(operation(values[0], values[1]));
     });
   };
 }

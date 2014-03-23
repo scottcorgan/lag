@@ -1,10 +1,11 @@
 {
   "name": "lag",
   "version": "0.0.6",
-  "description": "Functionally handle promises",
+  "description": "Functionally promises. Very functional.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/ --reporter spec"
+    "test": "mocha test/ --reporter spec",
+    "build-standalone": "node_modules/.bin/browserify index.js -o dist/lag.js"
   },
   "repository": {
     "type": "git",
@@ -28,7 +29,8 @@
     "clone": "^0.1.11",
     "lab": "^1.9.0",
     "mocha": "^1.18.2",
-    "expect.js": "^0.3.1"
+    "expect.js": "^0.3.1",
+    "browserify": "^3.33.0"
   },
   "dependencies": {
     "promise": "^4.0.0",

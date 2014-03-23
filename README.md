@@ -99,7 +99,6 @@ _.map(_.add(1), promises)
   * [asPromise](#aspromisevalue)
   * [all](#allpromise1-promise2-promisen-)
   * [partial](#partialfunction-value1-valuen-)
-  * [identity](#identityvalue)
   * [boolean](#booleanvalue)
   * [inverseBoolean](#inversebooleanvalue)
   * [compose](#composemethod1-method2-methodn-)
@@ -202,8 +201,6 @@ _.map(_.add(1), promises)
 ### all(promise1[, promise2, promisen, ...])
 
 ### partial(function[, value1, valuen, ...])
-
-### identity(value)
 
 ### boolean(value)
 
