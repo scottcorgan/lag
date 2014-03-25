@@ -9,100 +9,32 @@ var _ = {
   _functionFirst: true
 };
 
-// (fn, promise) syntax
-_._method = function (name, fn) {
-  var method = this[name] = this._partialize(fn);
-  return method;
-};
-
-// unlimited arguments syntax, but only one passed to initial partial
-_._partializedMethod = function (name, fn) {
-  return _[name] = function () {
-    // if (arguments.length === 1) {
-      
-    var args = flatten(asArray(arguments));
+_.register = function (name, fn, options) {
+  options = options || {};
+  
+  _[name] = function (handler, value) {
+    var args = asArray(arguments);
     
-    // Promises or functions first?
-    if (_._promiseFirst) args = args.reverse();
+    // All arguments
+    if (args.length > 1 && !options.partial) return fn.apply(null, args);    
     
-    // If last argument isn't a promise, this is a partial
-    if (args.length === 1) {
-      return _.partial(function () {
-        return _[name].apply(null, asArray(arguments));
-      }, args);
-    }
-    
-    return fn.apply(null, args);
+    // Partial handler
+    args.unshift(fn);
+    return _.partial.apply(null, args);
   };
 };
 
-_._fnFromArgs = function (args) {
-  var fn;
-  
-  if (_._promiseFirst) fn = args[args.length - 1];
-  else fn = args[0];
-  
-  return fn;
+_.promise = function (value) {
+  if (typeof value === 'function') return new Promise(value);
+  return _.promiseFrom(value);
 };
 
-_._promisesFromArgs = function (args) {
-  var promises;
-  
-  if (!args[1]) return; // No promises
-  if (_._promiseFirst) promises =  flatten([].slice.call(args, 0, args.length -1));
-  else promises = flatten([].slice.call(args, 1));
-  
-  return promises;
-};
-
-_._args = function (args) {
-  var _args = {};
-  
-  // object
-  if (args[0] && args[0].fn) {
-    _args.fn = args[0].fn;
-    _args.promises = asArray(args[0].promises);
-  }
-  
-  // probably multiple arguments
-  if (args.length >= 1 && !args[0].fn) {
-    _args.fn = _._fnFromArgs(args);
-    _args.promises = _._promisesFromArgs(args);
-  }
-  
-  // Trun all values into promises
-  if (_args.promises) {
-    _args.promises = asArray(_args.promises).map(_.asPromise);
-  }
-  
-  return _args;
-};
-
-_._partialize = function (callback) {
-  return function () {
-    var args = _._args(arguments);
-    
-    args.fn = args.fn || function (promise, resolve) {resolve();};
-    
-    if (!args.promises) return _.partial(function (fn, promises) {
-      var args = _._args(arguments);
-      return callback(args);
-    }, args.fn);
-      
-    return callback(args);
-  };
-};
-
-_.promise = function (fn) {
-  return new Promise(fn || function () {});
-};
-
-_.asPromise = function (value) {
+_.promiseFrom = function (value) {
   return Promise.from(value);
 };
 
 _.all = function () {
-  return Promise.all.apply(Promise, asArray(arguments));
+  return Promise.all.apply(null, asArray(arguments));
 };
 
 _.partial = function () {
@@ -111,27 +43,27 @@ _.partial = function () {
   
   return function () {
     var appliedArgs = asArray(arguments);
-    return fn.apply(fn, partialArgs.concat(appliedArgs));
+    return fn.apply(null, partialArgs.concat(appliedArgs));
   };
 };
 
 _.identity = function () {
-  return arguments[0];
+  return _.promise(arguments[0]);
 };
 
 _.boolean = function (promise) {
   return _
-    .asPromise(promise)
+    .promise(promise)
     .then(function (val) {
-      return _.asPromise(!!val);
+      return _.promise(!!val);
     });
 };
 
 _.inverseBoolean = function (promise) {
-  return _.asPromise(promise)
+  return _.promise(promise)
     .then(_.boolean)
     .then(function (val) {
-      return _.asPromise(!val);
+      return _.promise(!val);
     });
 };
 
@@ -147,116 +79,105 @@ _.compose = function () {
         
         return fn
           ? fn(promises).then(executeFunction, reject)
-          : resolve(_.asPromise(promises));
+          : resolve(_.promise(promises));
       };
     });
   };
 };
 
-_._isPromise = function (obj) {
-  return obj && typeof obj.then === 'function';
-};
-
-_.promiseFirst = function () {
-  _._promiseFirst = true;
-  _._functionFirst = false;
-};
-
-_.functionFirst = function () {
-  _._promiseFirst = false;
-  _._functionFirst = true;
+_.isPromise = function (value) {
+  return value && typeof value.then === 'function';
 };
 
 // Arrays
 
-_._method('each', function (args) {
-  var eachPromises = args.promises.map(function (promise, idx) {
-    return args.fn(promise, idx);
-  });
-  
-  return _.all(eachPromises);  
+_.register('each', function (handler, promises) {
+  return _.all(asArray(promises).map(function (value, idx) {
+    return handler(_.promise(value), idx);
+  }));
 });
 
-_._method('eachSeries', function (args) {  var _shouldExit = false;
-  var currentPromise = _.asPromise(true);
-  var promises = args.promises.map(function (promise, idx) {
+_.register('eachSeries', function (handler, promises) {
+  var currentPromise = _.promise(true);
+  var p = asArray(promises).map(function (promise, idx) {
     return currentPromise = currentPromise.then(function () {
-      return args.fn(promise, idx);
-    })
+      return handler(_.promise(promise), idx);
+    });
   });
     
-  return _.all(promises);
+  return _.all(p);
 });
 
 
 ['map', 'mapSeries'].forEach(function (name) {
-  _._method(name, function (args) {
+  _.register(name, function (handler, promises) {
     var mapped = [];
     var each = (name === 'map') ? 'each' : 'eachSeries';
     
     return _[each](function (promise, idx) {
-      return args.fn(promise, idx).then(mapped.push.bind(mapped));
-    }, args.promises).then(function () {
+      return handler(promise, idx).then(mapped.push.bind(mapped));
+    }, promises).then(function () {
       return _.all(mapped);
     });
   });
 });
 
 
-_._method('reduce', function (args) {
-  var accum = args.promises.shift();
+_.register('reduce', function (handler, promises) {
+  promises = asArray(promises);
+  
+  var accum = promises.shift();
   
   return _.eachSeries(function (promise, idx) {
     return _.promise(function (resolve, reject) {
-      args.fn(accum, promise, idx).then(function (val) {
-        accum = _.asPromise(val);
+      handler(accum, promise, idx).then(function (val) {
+        accum = _.promise(val);
         resolve();
       });
     });
-  }, args.promises).then(function () {
-    return _.asPromise(accum);
+  }, promises).then(function () {
+    return _.promise(accum);
   });
 });
 
-_._method('reduceRight', function (args) {
-  args.promises = args.promises.reverse();
-  return _.reduce(args);
+_.register('reduceRight', function (handler, promises) {
+  return _.reduce(handler, asArray(promises).reverse());
 });
 
 ['filter', 'filterSeries'].forEach(function (name) {
-  _._method(name, function (args) {
+  _.register(name, function (handler, promises) {
     var filtered = [];
     var each = (name === 'filter') ? 'each' : 'eachSeries';
     
     return _[each](function (promise, idx) {
-      return args.fn(promise, idx).then(function (passed) {
+      return handler(promise, idx).then(function (passed) {
         if (passed) filtered.push(promise);
       });
-    }, args.promises).then(function () {
+    }, promises).then(function () {
       return _.all(filtered);
     });
   });
 });
 
 ['reject', 'rejectSeries'].forEach(function (name) {
-  _._method(name, function (args) {
+  _.register(name, function (handler, promises) {
     var filter = (name === 'reject') ? 'filter' : 'filterSeries';
     
     return _[filter](function (promise, idx) {
-      return args.fn(promise, idx)
+      return handler(promise, idx)
         .then(_.inverseBoolean);
-    }, args.promises);
+    }, promises);
   });
 });
 
 
 ['find', 'findSeries'].forEach(function (name) {
-  _._method(name, function (args) {
+  _.register(name, function (handler, promises) {
     var wanted;
     var each = (name === 'find') ? 'each': 'eachSeries';
     
     return _[each](function (promise, idx) {
-      return args.fn(promise, idx).then(function (passed) {
+      return handler(promise, idx).then(function (passed) {
         
         // FIXME: this leaves some promises hanging
         // when no values match
@@ -264,8 +185,8 @@ _._method('reduceRight', function (args) {
         // if (passed && !wanted) resolve(promise);
         if (passed && !wanted) wanted = promise;
       });
-    }, args.promises).then(function () {
-      return _.asPromise(wanted);
+    }, promises).then(function () {
+      return _.promise(wanted);
     });
   });
 });
@@ -274,23 +195,23 @@ _._method('reduceRight', function (args) {
 _.compact = _.filter(_.boolean);
 
 _.first = function (promises) {
-  return _.asPromise(asArray(promises)[0]);
+  return _.promise(asArray(promises)[0]);
 };
 
 _.firstValue = function (promise) {
   return _.first(promise).then(function (arr) {
-    return _.asPromise(asArray(arr)[0]);
+    return _.promise(asArray(arr)[0]);
   });
 };
 
 _.last = function (promises) {
-  return _.asPromise(promises[promises.length - 1]);
+  return _.promise(promises[promises.length - 1]);
 };
 
 _.lastValue = function (promise) {
   return _.first(promise).then(function (arr) {
     arr = asArray(arr);
-    return _.asPromise(arr[arr.length - 1]);
+    return _.promise(arr[arr.length - 1]);
   });
 };
 
@@ -301,7 +222,7 @@ _.initial = function (promises) {
 _.initialValues = function (promise) {
   return _.first(promise).then(function (arr) {
     arr = asArray(arr);
-    return _.asPromise(arr.slice(0, arr.length-1));
+    return _.promise(arr.slice(0, arr.length-1));
   });
 };
 
@@ -312,7 +233,7 @@ _.tail = function (promises) {
 _.tailValues = function (promise) {
   return _.first(promise).then(function (arr) {
     arr = asArray(arr);
-    return _.asPromise(arr.slice(1));
+    return _.promise(arr.slice(1));
   });
 };
 
@@ -322,16 +243,15 @@ _.reverse = function (promises) {
 
 _.reverseValues = function (promise) {
   return _.first(promise).then(function (arr) {
-    return _.asPromise(arr.reverse());
+    return _.promise(arr.reverse());
   });
 };
 
 // Collections
 
 ['where', 'findWhere'].forEach(function (name) {
-  _._method(name, function (args) {
-    var where = args.fn;
-    var keys = Object.keys(where);
+  _.register(name, function (matchers, promises) {
+    var keys = Object.keys(matchers);
     var find = (name === 'where') ? 'filter': 'find';
     
     return _[find](function (promise) {
@@ -339,26 +259,26 @@ _.reverseValues = function (promise) {
         var matching = false;
         
         keys.forEach(function (key) {
-          if (obj[key] === where[key]) matching = true;
+          if (obj[key] === matchers[key]) matching = true;
         });
         
-        return _.asPromise(matching);
-        });
-    }, args.promises)
+        return _.promise(matching);
+      });
+    }, promises)
   });
 });
 
-_._method('pluck', function (args) {
-  return _.all(args.promises).then(function (res) {
-    return _.asPromise(res.map(function (obj) {
-      return obj[args.fn];
+_.register('pluck', function (key, promises) {
+  return _.all(promises).then(function (res) {
+    return _.promise(res.map(function (obj) {
+      return obj[key];
     }));
   });
 });
 
 _.every = function (promises) {
   return _.compact(promises).then(function (compacted) {
-    return _.asPromise(promises.length === compacted.length);
+    return _.promise(promises.length === compacted.length);
   });
 };
 
@@ -368,21 +288,15 @@ _.some = function (promises) {
     .then(_.boolean);
 };
 
-_._method('contains', function (args) {
-  var value = args.fn;
-  
-  return _
-    .find(_.equal(value), args.promises)
+_.register('contains', function (value, promises) {
+  return _.find(_.equal(value), promises)
     .then(_.boolean);
 });
 
 // Objects
 
 _.keys = function (promise) {
-  return _.first(promise)
-    .then(function (obj) {
-      return _.asPromise(Object.keys(obj));
-    });
+  return _.promise(_.first(promise).then(Object.keys));
 };
 
 
@@ -393,108 +307,107 @@ _.values = function (promise) {
         return obj[key];
       });
     
-      return _.asPromise(values);
+      return _.promise(values);
     });
 };
 
-_._partializedMethod('extend', function () {
+_.register('extend', function () {
   return _
     .map(_.identity, flatten(arguments))
     .then(function (objects) {
-      return _.asPromise(extend.apply(null, objects));
+      return _.promise(extend.apply(null, objects));
     });
+}, {
+  parital: false
 });
 
-_._partializedMethod('defaults', function () {
+_.register('defaults', function () {
   return _
     .map(_.identity, flatten(arguments).reverse())
     .then(function (objects) {
-      return _.asPromise(defaults.apply(null, objects));
+      return _.promise(defaults.apply(null, objects));
     });
+}, {
+  partial: false
 });
 
-// TODO: make these
-// _._methodWithMultipleFns
-// _._methodWithMultiplePromises
-
-_._partializedMethod('pick', function () {
-  var args = asArray(arguments);
+_.register('pick', function (keys, promise) {
+  var returnObj = {};
   
-  return _.last(args).then(function (obj) {
-    return _.initial(args).then(function (keys) {
-      var returnObj = {};
-      
-      keys.forEach(function (key) {
-        returnObj[key] = obj[key];
-      });
-      
-      return _.asPromise(returnObj);
+  return _.all(promise, _.all(keys)).then(function (results) {
+    var obj = results[0];
+    var resolvedKeys = results[1];
+    
+    resolvedKeys.forEach(function (key) {
+      returnObj[key] = obj[key];
     });
+    
+    return _.promise(returnObj);
   });
 });
 
-_._partializedMethod('omit', function () {
-  var args = asArray(arguments);
-  
-  return _.last(args).then(function (obj) {
-    return _.initial(args).then(function (keysToRemove) {      
+_.register('omit', function (keys, promise) {
+  return _.all(promise, _.all(keys)).then(function (results) {
+    var obj = results[0];
+    var keysToRemove = results[1];
       
-      var keys = _.reject(function (key) {
-        return _.contains(key, keysToRemove);
-      }, Object.keys(obj));
-      
-      return _.pick(keys, obj);
-    });
+    var keys = _.reject(function (key) {
+      return _.contains(key, keysToRemove);
+    }, Object.keys(obj));
+    
+    return _.pick(keys, obj);
   });
 });
 
-_.zipObject = function (arr1, arr2) {
+_.register('zipObject', function (arr1, arr2) {
   return _.all(arr1, arr2)
     .then(function (values) {
-      return _.asPromise(zipObject.apply(null, values));
+      return _.promise(zipObject.apply(null, values));
     });
-};
+}, {
+  partial: false
+});
 
 // Strings
 
-_._method('prepend', function (args) {
-  return _.first(args.promises).then(function (val) {
-    return _.asPromise('' + args.fn + val + '');
+_.register('prepend', function (stringToPrepend, promise) {
+  return _.first(promise).then(function (val) {
+    return _.promise('' + stringToPrepend + val + '');
   });
 });
 
-_._method('append', function (args) {
-  return _.first(args.promises).then(function (val) {
-    return _.asPromise('' + val + args.fn + '');
+_.register('append', function (stringToAppend, promise) {
+  return _.first(promise).then(function (val) {
+    return _.promise('' + val + stringToAppend + '');
   });
 });
 
 // Utilities
 
-_._method('equal', operateOnValues(function (a, b) {
+_.register('equal', operateOnValues(function (a, b) {
   return a === b;
 }));
 
-_._method('greaterThan', operateOnValues(function (a, b) {
+_.register('greaterThan', operateOnValues(function (a, b) {
   return a < b;
 }));
 
-_._method('lessThan', operateOnValues(function (a, b) {
+_.register('lessThan', operateOnValues(function (a, b) {
   return a > b;
 }));
 
-_._method('add', operateOnValues(function (a, b) {
+_.register('add', operateOnValues(function (a, b) {
   return a + b;
 }));
 
-_._method('subtract', operateOnValues(function (a, b) {
+_.register('subtract', operateOnValues(function (a, b) {
   return b - a;
 }));
 
 function operateOnValues(operation) {
-  return function (args) {
-    return _.all(args.fn, args.promises[0]).then(function (values) {
-      return _.asPromise(operation(values[0], values[1]));
+  return function (value1, value2) {
+    return _.all(value1, value2).then(function (values) {
+      return _.promise(operation(values[0], values[1]));
     });
   };
 }
@@ -502,7 +415,7 @@ function operateOnValues(operation) {
 _.log = function (promise) {
   return promise.then(function (val) {
     console.log(val);
-    return _.asPromise(val);
+    return _.promise(val);
   });
 };
 
