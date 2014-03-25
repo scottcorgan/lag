@@ -425,6 +425,32 @@ describe('arrays', function () {
     });
   });
   
+  it('#max()', function () {
+    return _.max([1,2,3]).then(function (max) {
+      expect(max).to.equal(3);
+    });
+  });
+  
+  it('#min()', function () {
+    return _.min([1,2,3]).then(function (max) {
+      expect(max).to.equal(1);
+    });
+  });
+  
+  it('#sortBy()', function () {
+    return _.sortBy(function (promise, idx) {
+      return promise;
+    }, [3,1,2]).then(function (sorted) {
+      expect(sorted).to.eql([1,2,3]);
+    })
+  });
+  
+  it('#at()', function () {
+    return _.at([0, 3], [9,8,7,6,5]).then(function (values) {
+      expect(values).to.eql([9,6]);
+    });
+  });
+  
   it('#compact(), remove all falsey values', function () {
     var promises = [
       _.promise(123),
@@ -608,15 +634,6 @@ describe('collections', function () {
       expect(contains).to.equal(true);
     });
   });
-  
-  // TODO: make these
-  
-  it('#max()');
-  it('#min()');
-  it('#sortBy()');
-  it('#indexBy()');
-  it('#countBy()');
-  it('#at()');
   
 });
 

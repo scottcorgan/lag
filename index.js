@@ -4,11 +4,9 @@ var extend = require('extend');
 var flatten = require('flat-arguments');
 var zipObject = require('zip-object');
 
-var _ = {
-  _promiseFirst: false,
-  _functionFirst: true
-};
+var _ = Object.create(null);
 
+// Main method to create new, partialized methods
 _.register = function (name, fn, options) {
   options = options || {};
   
@@ -191,6 +189,32 @@ _.register('reduceRight', function (handler, promises) {
   });
 });
 
+_.max = function (promises) {
+  return _.all(promises).then(function (values) {
+    return _.promise(Math.max.apply(Math, values));
+  });
+};
+
+_.min = function (promises) {
+  return _.all(promises).then(function (values) {
+    return _.promise(Math.min.apply(Math, values));
+  });
+};
+
+// Sort in ascending order
+_.register('sortBy', function (handler, promises) {
+  return _.map(handler, promises).then(function (values) {
+    return _.promise(values.sort(function (a, b) {
+      return a - b;
+    }));
+  });
+});
+
+_.register('at', function (indexes, promises) {
+  return _.filterSeries(function (promise, idx) {
+    return _.promise(indexes.indexOf(idx) > -1);
+  }, promises);
+});
 
 _.compact = _.filter(_.boolean);
 
