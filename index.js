@@ -4,272 +4,55 @@ var extend = require('extend');
 var flatten = require('flat-arguments');
 var zipObject = require('zip-object');
 
+
+
 var _ = Object.create(null);
 
 // Main method to create new, partialized methods
+var register = require('./lib/register');
 _.register = function (name, fn, options) {
-  options = options || {};
-  
-  _[name] = function (handler, value) {
-    var args = asArray(arguments);
-    
-    // All arguments
-    if (args.length > 1 && !options.partial) return fn.apply(null, args);    
-    
-    // Partial handler
-    args.unshift(fn);
-    return _.partial.apply(null, args);
-  };
+  return _[name] = register(name, fn, options);
 };
 
-_.promise = function (value) {
-  if (typeof value === 'function') return new Promise(value);
-  return _.promiseFrom(value);
-};
-
-_.promiseFrom = function (value) {
-  return Promise.from(value);
-};
-
-_.all = function () {
-  return Promise.all.apply(null, asArray(arguments));
-};
-
-_.partial = function () {
-  var partialArgs = asArray(arguments);
-  var fn = partialArgs.shift();
-  
-  return function () {
-    var appliedArgs = asArray(arguments);
-    return fn.apply(null, partialArgs.concat(appliedArgs));
-  };
-};
-
-_.identity = function () {
-  return _.promise(arguments[0]);
-};
-
-_.boolean = function (promise) {
-  return _
-    .promise(promise)
-    .then(function (val) {
-      return _.promise(!!val);
-    });
-};
-
-_.inverseBoolean = function (promise) {
-  return _.promise(promise)
-    .then(_.boolean)
-    .then(function (val) {
-      return _.promise(!val);
-    });
-};
-
-_.compose = function () {
-  var fns = asArray(arguments).reverse();
-  
-  return function (promises) {
-    return _.promise(function (resolve, reject) {
-      executeFunction(promises)
-
-      function executeFunction (promises) {
-        var fn = fns.shift();
-        
-        return fn
-          ? fn(promises).then(executeFunction, reject)
-          : resolve(_.promise(promises));
-      };
-    });
-  };
-};
-
-_.isPromise = function (value) {
-  return value && typeof value.then === 'function';
-};
+_.promise = require('./lib/promise');
+_.all = require('./lib/all');
+_.partial = require('./lib/partial');
+_.identity = require('./lib/identity');
+_.boolean = require('./lib/boolean');
+_.inverseBoolean = require('./lib/inverse_boolean');
+_.compose = require('./lib/compose');
 
 // Arrays
 
-_.register('each', function (handler, promises) {
-  return _.all(asArray(promises).map(function (value, idx) {
-    return handler(_.promise(value), idx);
-  }));
-});
+// TODO: combine the "series" and "parallel" versions
 
-_.register('eachSeries', function (handler, promises) {
-  var currentPromise = _.promise(true);
-  var p = asArray(promises).map(function (promise, idx) {
-    return currentPromise = currentPromise.then(function () {
-      return handler(_.promise(promise), idx);
-    });
-  });
-    
-  return _.all(p);
-});
-
-
-['map', 'mapSeries'].forEach(function (name) {
-  _.register(name, function (handler, promises) {
-    var mapped = [];
-    var each = (name === 'map') ? 'each' : 'eachSeries';
-    
-    return _[each](function (promise, idx) {
-      return handler(promise, idx).then(mapped.push.bind(mapped));
-    }, promises).then(function () {
-      return _.all(mapped);
-    });
-  });
-});
-
-
-_.register('reduce', function (handler, promises) {
-  promises = asArray(promises);
-  
-  var accum = promises.shift();
-  
-  return _.eachSeries(function (promise, idx) {
-    return _.promise(function (resolve, reject) {
-      handler(accum, promise, idx).then(function (val) {
-        accum = _.promise(val);
-        resolve();
-      });
-    });
-  }, promises).then(function () {
-    return _.promise(accum);
-  });
-});
-
-_.register('reduceRight', function (handler, promises) {
-  return _.reduce(handler, asArray(promises).reverse());
-});
-
-['filter', 'filterSeries'].forEach(function (name) {
-  _.register(name, function (handler, promises) {
-    var filtered = [];
-    var each = (name === 'filter') ? 'each' : 'eachSeries';
-    
-    return _[each](function (promise, idx) {
-      return handler(promise, idx).then(function (passed) {
-        if (passed) filtered.push(promise);
-      });
-    }, promises).then(function () {
-      return _.all(filtered);
-    });
-  });
-});
-
-['reject', 'rejectSeries'].forEach(function (name) {
-  _.register(name, function (handler, promises) {
-    var filter = (name === 'reject') ? 'filter' : 'filterSeries';
-    
-    return _[filter](function (promise, idx) {
-      return handler(promise, idx)
-        .then(_.inverseBoolean);
-    }, promises);
-  });
-});
-
-
-['find', 'findSeries'].forEach(function (name) {
-  _.register(name, function (handler, promises) {
-    var wanted;
-    var each = (name === 'find') ? 'each': 'eachSeries';
-    
-    return _[each](function (promise, idx) {
-      return handler(promise, idx).then(function (passed) {
-        
-        // FIXME: this leaves some promises hanging
-        // when no values match
-        
-        // if (passed && !wanted) resolve(promise);
-        if (passed && !wanted) wanted = promise;
-      });
-    }, promises).then(function () {
-      return _.promise(wanted);
-    });
-  });
-});
-
-_.max = function (promises) {
-  return _.all(promises).then(function (values) {
-    return _.promise(Math.max.apply(Math, values));
-  });
-};
-
-_.min = function (promises) {
-  return _.all(promises).then(function (values) {
-    return _.promise(Math.min.apply(Math, values));
-  });
-};
-
-// Sort in ascending order
-_.register('sortBy', function (handler, promises) {
-  return _.map(handler, promises).then(function (values) {
-    return _.promise(values.sort(function (a, b) {
-      return a - b;
-    }));
-  });
-});
-
-_.register('at', function (indexes, promises) {
-  return _.filterSeries(function (promise, idx) {
-    return _.promise(indexes.indexOf(idx) > -1);
-  }, promises);
-});
-
-_.compact = _.filter(_.boolean);
-
-_.first = function (promises) {
-  return _.promise(asArray(promises)[0]);
-};
-
-_.firstValue = function (promise) {
-  return _.first(promise).then(function (arr) {
-    return _.promise(asArray(arr)[0]);
-  });
-};
-
-_.last = function (promises) {
-  return _.promise(promises[promises.length - 1]);
-};
-
-_.lastValue = function (promise) {
-  return _.first(promise).then(function (arr) {
-    arr = asArray(arr);
-    return _.promise(arr[arr.length - 1]);
-  });
-};
-
-_.initial = function (promises) {
-  return _.all(promises.slice(0, promises.length-1));
-};
-
-_.initialValues = function (promise) {
-  return _.first(promise).then(function (arr) {
-    arr = asArray(arr);
-    return _.promise(arr.slice(0, arr.length-1));
-  });
-};
-
-_.tail = function (promises) {
-  return _.all(promises.slice(1));
-};
-
-_.tailValues = function (promise) {
-  return _.first(promise).then(function (arr) {
-    arr = asArray(arr);
-    return _.promise(arr.slice(1));
-  });
-};
-
-_.reverse = function (promises) {
-  return _.all(promises.reverse());
-};
-
-_.reverseValues = function (promise) {
-  return _.first(promise).then(function (arr) {
-    return _.promise(arr.reverse());
-  });
-};
+_.each = require('./lib/each');
+_.eachSeries = require('./lib/each_series');
+_.map = require('./lib/map');
+_.mapSeries = require('./lib/map_series');
+_.reduce = require('./lib/reduce');
+_.reduceRight = require('./lib/reduce_right');
+_.filter = require('./lib/filter');
+_.filterSeries = require('./lib/filter_series');
+_.reject = require('./lib/reject');
+_.rejectSeries = require('./lib/reject_series');
+_.find = require('./lib/find');
+_.findSeries = require('./lib/find_series');
+_.max = require('./lib/max');
+_.min = require('./lib/min');
+_.sortBy = require('./lib/sort_by');
+_.at = require('./lib/at');
+_.compact = require('./lib/compact');
+_.first = require('./lib/first');
+_.firstValue = _.first.value;
+_.last = require('./lib/last');
+_.lastValue = _.last.value;
+_.initial = require('./lib/initial');
+_.initialValues = _.initial.values;
+_.tail = require('./lib/tail');
+_.tailValues = _.tail.values;
+_.reverse = require('./lib/reverse');
+_.reverseValues = _.reverse.values;
 
 // Collections
 
