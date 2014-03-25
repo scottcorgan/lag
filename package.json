@@ -27,7 +27,6 @@
     "promise": "^4.0.0",
     "is-promise": "^1.0.0",
     "clone": "^0.1.11",
-    "lab": "^1.9.0",
     "mocha": "^1.18.2",
     "expect.js": "^0.3.1",
     "browserify": "^3.33.0"
