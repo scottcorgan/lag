@@ -30,6 +30,7 @@ Object
   });
 
 // Publish modules to NPM
+var moduleNum = 0;
 npm.load({
   loaded: false
 }, function (err) {
@@ -39,10 +40,12 @@ npm.load({
     
     npm.commands.publish([modulePath], function (err) {
       if (!err) console.log('lag.' + lowercaseName + ' published!');
+      if (!err) moduleNum += 1;
       cb(err);
     });
   }, function (err) {
     if (err) console.error('ERROR:', err);
+    else console.log('SUCCESS:', moduleNum, 'modules published');
   });
 });
 
