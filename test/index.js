@@ -4,15 +4,6 @@ var clone = require('clone');
 var Promise = require('promise');
 var isPromise = require('is-promise');
 
-/*
-
-TODO
-==============
-- angular support
-
- */
- 
-
 describe('basic promising', function () {
   
   it('creates promises', function () {

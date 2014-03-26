@@ -1,12 +1,13 @@
 {
   "name": "lag",
-  "version": "0.0.7",
-  "description": "Functionally promises. Very functional.",
+  "version": "0.0.8",
+  "description": "Lag helps with functional promises.",
   "main": "index.js",
   "scripts": {
     "test": "npm run lint && mocha test/ --reporter spec",
     "lint": "jshint index.js lib/",
-    "build-standalone": "node_modules/.bin/browserify index.js -o dist/lag.js"
+    "build-standalone": "node_modules/.bin/browserify index.js -o dist/lag.js",
+    "build-modules": "build/publish.js"
   },
   "repository": {
     "type": "git",
@@ -33,7 +34,10 @@
     "browserify": "^3.33.0",
     "jshint": "^2.4.4",
     "mkdirp": "^0.3.5",
-    "esrefactor": "^0.1.0"
+    "detective": "^3.1.0",
+    "remove": "^0.1.5",
+    "npm": "^1.4.6",
+    "async": "^0.2.10"
   },
   "dependencies": {
     "promise": "^4.0.0",
