@@ -64,7 +64,7 @@ function generatePackage (pathname, name, deps) {
   fs.writeFileSync(pathname + '/package.json', JSON.stringify({
     "name": "lag." + name,
     "version": pkg.version,
-    "description": "Functionally promises. Very functional.", // TODO: make this custom
+    "description": "The lag function " + name + "() as a standalone module.",
     "main": "index.js",
     "repository": pkg.repository,
     "keywords": pkg.keywords.concat(name),
