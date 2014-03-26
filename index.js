@@ -6,9 +6,11 @@ var lag = Object.create(null);
 modules
   .map(removeExension)
   .map(loadModule)
-  .forEach(function (mod) {
-    lag[mod.name] = mod.handler;
-  });
+  .forEach(extendLagWith);
+
+function extendLagWith (mod) {
+  lag[mod.name] = mod.handler;
+}
 
 function removeExension (filename) {
   return filename.replace('.js', '');
