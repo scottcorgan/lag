@@ -1,16 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var asArray = require('as-array');
-var extend = require('extend');
-var flatten = require('flat-arguments');
-var zipObject = require('zip-object');
-
 var _ = Object.create(null);
-
-// Main method to create new, partialized methods
-var register = require('./lib/register');
-_.register = function (name, fn, options) {
-  return _[name] = register(name, fn, options);
-};
 
 _.promise = require('./lib/promise');
 _.all = require('./lib/all');
@@ -22,20 +11,13 @@ _.compose = require('./lib/compose');
 
 // Arrays
 
-// TODO: combine the "series" and "parallel" versions
-
 _.each = require('./lib/each');
-_.eachSeries = require('./lib/each_series');
 _.map = require('./lib/map');
-_.mapSeries = require('./lib/map_series');
 _.reduce = require('./lib/reduce');
 _.reduceRight = require('./lib/reduce_right');
 _.filter = require('./lib/filter');
-_.filterSeries = require('./lib/filter_series');
 _.reject = require('./lib/reject');
-_.rejectSeries = require('./lib/reject_series');
 _.find = require('./lib/find');
-_.findSeries = require('./lib/find_series');
 _.max = require('./lib/max');
 _.min = require('./lib/min');
 _.sortBy = require('./lib/sort_by');
@@ -68,115 +50,58 @@ _.values = require('./lib/values');
 _.extend = require('./lib/extend');
 _.defaults = require('./lib/defaults');
 _.pick = require('./lib/pick');
-
-
-
-_.register('omit', function (keys, promise) {
-  return _.all(promise, _.all(keys)).then(function (results) {
-    var obj = results[0];
-    var keysToRemove = results[1];
-      
-    var keys = _.reject(function (key) {
-      return _.contains(key, keysToRemove);
-    }, Object.keys(obj));
-    
-    return _.pick(keys, obj);
-  });
-});
-
-_.register('zipObject', function (arr1, arr2) {
-  return _.all(arr1, arr2)
-    .then(function (values) {
-      return _.promise(zipObject.apply(null, values));
-    });
-}, {
-  partial: false
-});
+_.omit = require('./lib/omit');
+_.zipObject = require('./lib/zip_object');
 
 // Strings
 
-_.register('prepend', function (stringToPrepend, promise) {
-  return _.first(promise).then(function (val) {
-    return _.promise('' + stringToPrepend + val + '');
-  });
-});
-
-_.register('append', function (stringToAppend, promise) {
-  return _.first(promise).then(function (val) {
-    return _.promise('' + val + stringToAppend + '');
-  });
-});
+_.prepend = require('./lib/prepend');
+_.append = require('./lib/append');
 
 // Utilities
 
 _.equal = require('./lib/equal');
-
-// _.register('equal', operateOnValues(function (a, b) {
-//   return a === b;
-// }));
-
-_.register('greaterThan', operateOnValues(function (a, b) {
-  return a < b;
-}));
-
-_.register('lessThan', operateOnValues(function (a, b) {
-  return a > b;
-}));
-
-_.register('add', operateOnValues(function (a, b) {
-  return a + b;
-}));
-
-_.register('subtract', operateOnValues(function (a, b) {
-  return b - a;
-}));
-
-function operateOnValues(operation) {
-  return function (value1, value2) {
-    return _.all(value1, value2).then(function (values) {
-      return _.promise(operation(values[0], values[1]));
-    });
-  };
-}
-
-_.log = function (promise) {
-  return promise.then(function (val) {
-    console.log(val);
-    return _.promise(val);
-  });
-};
+_.greaterThan = require('./lib/greater_than');
+_.lessThan = require('./lib/less_than');
+_.add = require('./lib/add');
+_.subtract = require('./lib/subtract');
+_.log = require('./lib/log');
 
 module.exports = _;
+},{"./lib/add":2,"./lib/all":3,"./lib/append":4,"./lib/at":5,"./lib/boolean":6,"./lib/compact":7,"./lib/compose":8,"./lib/contains":9,"./lib/defaults":10,"./lib/each":11,"./lib/equal":12,"./lib/every":13,"./lib/extend":14,"./lib/filter":15,"./lib/find":16,"./lib/find_where":17,"./lib/first":18,"./lib/greater_than":19,"./lib/identity":20,"./lib/initial":21,"./lib/inverse_boolean":22,"./lib/keys":23,"./lib/last":24,"./lib/less_than":25,"./lib/log":26,"./lib/map":27,"./lib/max":28,"./lib/min":29,"./lib/omit":30,"./lib/partial":31,"./lib/pick":32,"./lib/pluck":33,"./lib/prepend":34,"./lib/promise":35,"./lib/reduce":36,"./lib/reduce_right":37,"./lib/reject":39,"./lib/reverse":40,"./lib/some":41,"./lib/sort_by":42,"./lib/subtract":43,"./lib/tail":44,"./lib/values":45,"./lib/where":46,"./lib/zip_object":47}],2:[function(require,module,exports){
+var register = require('./register');
 
-function defaults (options, defaults) {
-  options = options || {};
-
-  Object.keys(defaults).forEach(function(key) {
-    if (typeof options[key] === 'undefined') {
-      options[key] = defaults[key];
-    }
-  });
-
-  return options;
-};
-},{"./lib/all":2,"./lib/at":3,"./lib/boolean":4,"./lib/compact":5,"./lib/compose":6,"./lib/contains":7,"./lib/defaults":8,"./lib/each":9,"./lib/each_series":10,"./lib/equal":11,"./lib/every":12,"./lib/extend":13,"./lib/filter":14,"./lib/filter_series":15,"./lib/find":16,"./lib/find_series":17,"./lib/find_where":18,"./lib/first":19,"./lib/identity":20,"./lib/initial":21,"./lib/inverse_boolean":22,"./lib/keys":23,"./lib/last":24,"./lib/map":25,"./lib/map_series":26,"./lib/max":27,"./lib/min":28,"./lib/partial":29,"./lib/pick":30,"./lib/pluck":31,"./lib/promise":32,"./lib/reduce":33,"./lib/reduce_right":34,"./lib/register":35,"./lib/reject":36,"./lib/reject_series":37,"./lib/reverse":38,"./lib/some":39,"./lib/sort_by":40,"./lib/tail":41,"./lib/values":42,"./lib/where":43,"as-array":44,"extend":48,"flat-arguments":49,"zip-object":57}],2:[function(require,module,exports){
+module.exports = register.operateOnValues(function (a, b) {
+  return a + b;
+});
+},{"./register":38}],3:[function(require,module,exports){
 var Promise = require('promise');
 var asArray = require('as-array');
 
 module.exports = function () {
   return Promise.all.apply(null, asArray(arguments));
 };
-},{"as-array":44,"promise":55}],3:[function(require,module,exports){
+},{"as-array":48,"promise":53}],4:[function(require,module,exports){
+var register = require('./register');
+var first = require('./first');
+var promise = require('./promise');
+
+module.exports = register('append', function (stringToAppend, value) {
+  return first(value).then(function (val) {
+    return promise('' + val + stringToAppend + '');
+  });
+});
+},{"./first":18,"./promise":35,"./register":38}],5:[function(require,module,exports){
 var register = require('./register');
 var promise = require('./promise');
-var filterSeries = require('./filter_series');
+var filter = require('./filter');
 
 module.exports = register('at', function (indexes, promises) {
-  return filterSeries(function (value, idx) {
+  return filter.series(function (value, idx) {
     return promise(indexes.indexOf(idx) > -1);
   }, promises);
 });
-},{"./filter_series":15,"./promise":32,"./register":35}],4:[function(require,module,exports){
+},{"./filter":15,"./promise":35,"./register":38}],6:[function(require,module,exports){
 var promise = require('./promise');
 
 module.exports = function (value) {
@@ -185,12 +110,12 @@ module.exports = function (value) {
       return promise(!!val);
     });
 };
-},{"./promise":32}],5:[function(require,module,exports){
+},{"./promise":35}],7:[function(require,module,exports){
 var filter = require('./filter');
 var bln = require('./boolean');
 
 module.exports = filter(bln);
-},{"./boolean":4,"./filter":14}],6:[function(require,module,exports){
+},{"./boolean":6,"./filter":15}],8:[function(require,module,exports){
 var asArray = require('as-array');
 var promise = require('./promise');
 
@@ -211,7 +136,7 @@ module.exports = function () {
     });
   };
 };
-},{"./promise":32,"as-array":44}],7:[function(require,module,exports){
+},{"./promise":35,"as-array":48}],9:[function(require,module,exports){
 var register = require('./register');
 var find = require('./find');
 var equal = require('./equal');
@@ -220,8 +145,7 @@ var bln = require('./boolean');
 module.exports = register('contains', function (value, promises) {
   return find(equal(value), promises).then(bln);
 });
-},{"./boolean":4,"./equal":11,"./find":16,"./register":35}],8:[function(require,module,exports){
-var defaults = require('defaults');
+},{"./boolean":6,"./equal":12,"./find":16,"./register":38}],10:[function(require,module,exports){
 var asArray = require('as-array');
 var register = require('./register');
 var identity = require('./identity');
@@ -236,24 +160,31 @@ module.exports = register('defaults', function () {
 }, {
   partial: false
 });
-},{"./identity":20,"./map":25,"./promise":32,"./register":35,"as-array":44,"defaults":47}],9:[function(require,module,exports){
+
+function defaults (options, defaults) {
+  options = options || {};
+
+  Object.keys(defaults).forEach(function(key) {
+    if (typeof options[key] === 'undefined') {
+      options[key] = defaults[key];
+    }
+  });
+
+  return options;
+};
+},{"./identity":20,"./map":27,"./promise":35,"./register":38,"as-array":48}],11:[function(require,module,exports){
 var asArray = require('as-array');
 var register = require('./register');
 var promise = require('./promise');
 var all = require('./all');
 
-module.exports = register('each', function (handler, promises) {
+var each = register('each', function (handler, promises) {
   return all(asArray(promises).map(function (value, idx) {
     return handler(promise(value), idx);
   }));
 });
-},{"./all":2,"./promise":32,"./register":35,"as-array":44}],10:[function(require,module,exports){
-var asArray = require('as-array');
-var register = require('./register');
-var promise = require('./promise');
-var all = require('./all');
 
-module.exports = register('eachSeries', function (handler, promises) {
+each.series = register('eachSeries', function (handler, promises) {
   var currentPromise = promise(true);
   var p = asArray(promises).map(function (value, idx) {
     return currentPromise = currentPromise.then(function () {
@@ -263,23 +194,15 @@ module.exports = register('eachSeries', function (handler, promises) {
     
   return all(p);
 });
-},{"./all":2,"./promise":32,"./register":35,"as-array":44}],11:[function(require,module,exports){
+
+module.exports = each;
+},{"./all":3,"./promise":35,"./register":38,"as-array":48}],12:[function(require,module,exports){
 var register = require('./register');
-var all = require('./all');
-var promise = require('./promise');
 
-module.exports = register('equal', operateOnValues(function (a, b) {
+module.exports = register.operateOnValues(function (a, b) {
   return a === b;
-}));
-
-function operateOnValues(operation) {
-  return function (value1, value2) {
-    return all(value1, value2).then(function (values) {
-      return promise(operation(values[0], values[1]));
-    });
-  };
-}
-},{"./all":2,"./promise":32,"./register":35}],12:[function(require,module,exports){
+});
+},{"./register":38}],13:[function(require,module,exports){
 var compact = require('./compact');
 var promise = require('./promise');
 
@@ -288,7 +211,7 @@ module.exports = function (promises) {
     return promise(promises.length === compacted.length);
   });
 };
-},{"./compact":5,"./promise":32}],13:[function(require,module,exports){
+},{"./compact":7,"./promise":35}],14:[function(require,module,exports){
 var extend = require('extend');
 var asArray = require('as-array');
 var register = require('./register');
@@ -304,87 +227,66 @@ module.exports = register('extend', function () {
 }, {
   parital: false
 });
-},{"./identity":20,"./map":25,"./promise":32,"./register":35,"as-array":44,"extend":48}],14:[function(require,module,exports){
+},{"./identity":20,"./map":27,"./promise":35,"./register":38,"as-array":48,"extend":51}],15:[function(require,module,exports){
 var register = require('./register');
 var each = require('./each');
 var all = require('./all');
 
-module.exports = register('filter', function (handler, promises) {
-  var filtered = [];
-  
-  return each(function (promise, idx) {
-    return handler(promise, idx).then(function (passed) {
-      if (passed) filtered.push(promise);
-    });
-  }, promises).then(function () {
-    return all(filtered);
-  });
-});
-},{"./all":2,"./each":9,"./register":35}],15:[function(require,module,exports){
-var register = require('./register');
-var eachSeries = require('./each_series');
-var all = require('./all');
+var filter = register('filter', buildFilter(each));
+filter.series = register('filterSeries', buildFilter(each.series));
 
-module.exports = register('filterSeries', function (handler, promises) {
-  var filtered = [];
-  
-  return eachSeries(function (promise, idx) {
-    return handler(promise, idx).then(function (passed) {
-      if (passed) filtered.push(promise);
+
+function buildFilter (_each) {
+  return function (handler, promises) {
+    var filtered = [];
+    
+    return _each(function (promise, idx) {
+      return handler(promise, idx).then(function (passed) {
+        if (passed) filtered.push(promise);
+      });
+    }, promises).then(function () {
+      return all(filtered);
     });
-  }, promises).then(function () {
-    return all(filtered);
-  });
-});
-},{"./all":2,"./each_series":10,"./register":35}],16:[function(require,module,exports){
+  }
+}
+
+module.exports = filter;
+},{"./all":3,"./each":11,"./register":38}],16:[function(require,module,exports){
 var register = require('./register');
 var each = require('./each');
 var promise = require('./promise');
 
-module.exports = register('find', function (handler, promises) {
-  var wanted;
-  
-  return each(function (value, idx) {
-    return handler(value, idx).then(function (passed) {
-      
-      // FIXME: this leaves some promises hanging
-      // when no values match
-      
-      if (passed && !wanted) wanted = value;
-    });
-  }, promises).then(function () {
-    return promise(wanted);
-  });
-});
-},{"./each":9,"./promise":32,"./register":35}],17:[function(require,module,exports){
-var register = require('./register');
-var eachSeries = require('./each_series');
-var promise = require('./promise');
+var find = register('find', buildFind(each));
+find.series = register('findSeries', buildFind(each.series));
 
-module.exports = register('findSeries', function (handler, promises) {
-  var wanted;
-  
-  return eachSeries(function (value, idx) {
-    return handler(value, idx).then(function (passed) {
-      
-      // FIXME: this leaves some promises hanging
-      // when no values match
-      
-      if (passed && !wanted) wanted = value;
+function buildFind (_each) {
+  return function (handler, promises) {
+    var wanted;
+    
+    return _each(function (value, idx) {
+      return handler(value, idx).then(function (passed) {
+        
+        // FIXME: this leaves some promises hanging
+        // when no values match
+        
+        if (passed && !wanted) wanted = value;
+      });
+    }, promises).then(function () {
+      return promise(wanted);
     });
-  }, promises).then(function () {
-    return promise(wanted);
-  });
-});
-},{"./each_series":10,"./promise":32,"./register":35}],18:[function(require,module,exports){
+  }
+}
+
+module.exports = find;
+},{"./each":11,"./promise":35,"./register":38}],17:[function(require,module,exports){
 var register = require('./register');
 var promise = require('./promise');
-var findSeries = require('./find_series');
+var find = require('./find');
 
 module.exports = register('where', function (matchers, promises) {
   var keys = Object.keys(matchers);
   
-  return findSeries(function (value) {
+  return find.series(function (value) {
     return value.then(function (obj) {
       var matching = false;
       
@@ -396,7 +298,7 @@ module.exports = register('where', function (matchers, promises) {
     });
   }, promises);
 });
-},{"./find_series":17,"./promise":32,"./register":35}],19:[function(require,module,exports){
+},{"./find":16,"./promise":35,"./register":38}],18:[function(require,module,exports){
 var asArray = require('as-array');
 var promise = require('./promise');
 
@@ -411,13 +313,19 @@ first.value = function (value) {
 };
 
 module.exports = first;
-},{"./promise":32,"as-array":44}],20:[function(require,module,exports){
+},{"./promise":35,"as-array":48}],19:[function(require,module,exports){
+var register = require('./register');
+
+module.exports = register.operateOnValues(function (a, b) {
+  return a < b;
+});
+},{"./register":38}],20:[function(require,module,exports){
 var promise = require('./promise');
 
 module.exports = function () {
   return promise(arguments[0]);
 };
-},{"./promise":32}],21:[function(require,module,exports){
+},{"./promise":35}],21:[function(require,module,exports){
 var asArray = require('as-array');
 var all = require('./all');
 var promise = require('./promise');
@@ -435,7 +343,7 @@ initial.values = function (value) {
 };
 
 module.exports = initial;
-},{"./all":2,"./first":19,"./promise":32,"as-array":44}],22:[function(require,module,exports){
+},{"./all":3,"./first":18,"./promise":35,"as-array":48}],22:[function(require,module,exports){
 var promise = require('./promise');
 var bln = require('./boolean');
 
@@ -446,14 +354,14 @@ module.exports = function (value) {
       return promise(!val);
     });
 };
-},{"./boolean":4,"./promise":32}],23:[function(require,module,exports){
+},{"./boolean":6,"./promise":35}],23:[function(require,module,exports){
 var promise = require('./promise');
 var first = require('./first');
 
 module.exports = function (value) {
   return promise(first(value).then(Object.keys));
 };
-},{"./first":19,"./promise":32}],24:[function(require,module,exports){
+},{"./first":18,"./promise":35}],24:[function(require,module,exports){
 var asArray = require('as-array');
 var promise = require('./promise');
 var first = require('./first');
@@ -470,37 +378,43 @@ last.value = function (value) {
 };
 
 module.exports = last;
-},{"./first":19,"./promise":32,"as-array":44}],25:[function(require,module,exports){
+},{"./first":18,"./promise":35,"as-array":48}],25:[function(require,module,exports){
+var register = require('./register');
+
+module.exports = register.operateOnValues(function (a, b) {
+  return a > b;
+});
+},{"./register":38}],26:[function(require,module,exports){
+var promise = require('./promise');
+
+module.exports = function (value) {
+  return value.then(function (val) {
+    console.log(val);
+    return promise(val);
+  });
+};
+},{"./promise":35}],27:[function(require,module,exports){
 var register = require('./register');
 var each = require('./each');
 var all = require('./all');
 
-module.exports = register('map', function (handler, promises) {
-  var mapped = [];
-  
-  return each(function (promise, idx) {
-    return handler(promise, idx).then(mapped.push.bind(mapped));
-  }, promises).then(function () {
-    return all(mapped);
-  });
-});
+var map = register('map', buildMap(each));
+map.series = register('mapSeries', buildMap(each.series));
 
-},{"./all":2,"./each":9,"./register":35}],26:[function(require,module,exports){
-var register = require('./register');
-var eachSeries = require('./each_series');
-var all = require('./all');
+function buildMap (_each) {
+  return function (handler, promises) {
+    var mapped = [];
+    
+    return _each(function (promise, idx) {
+      return handler(promise, idx).then(mapped.push.bind(mapped));
+    }, promises).then(function () {
+      return all(mapped);
+    });
+  };
+}
 
-module.exports = register('mapSeries', function (handler, promises) {
-  var mapped = [];
-  
-  return eachSeries(function (promise, idx) {
-    return handler(promise, idx).then(mapped.push.bind(mapped));
-  }, promises).then(function () {
-    return all(mapped);
-  });
-});
-
-},{"./all":2,"./each_series":10,"./register":35}],27:[function(require,module,exports){
+module.exports = map;
+},{"./all":3,"./each":11,"./register":38}],28:[function(require,module,exports){
 var all = require('./all');
 var promise = require('./promise');
 
@@ -509,7 +423,7 @@ module.exports = function (promises) {
     return promise(Math.max.apply(Math, values));
   });
 };
-},{"./all":2,"./promise":32}],28:[function(require,module,exports){
+},{"./all":3,"./promise":35}],29:[function(require,module,exports){
 var all = require('./all');
 var promise = require('./promise');
 
@@ -518,7 +432,27 @@ module.exports = function (promises) {
     return promise(Math.min.apply(Math, values));
   });
 };
-},{"./all":2,"./promise":32}],29:[function(require,module,exports){
+},{"./all":3,"./promise":35}],30:[function(require,module,exports){
+var register = require('./register');
+var all = require('./all');
+var pick = require('./pick');
+var contains = require('./contains');
+var reject = require('./reject');
+
+module.exports = register('omit', function (keys, promise) {
+  return all(promise, all(keys)).then(function (results) {
+    var obj = results[0];
+    var keysToRemove = results[1];
+      
+    var keys = reject(function (key) {
+      return contains(key, keysToRemove);
+    }, Object.keys(obj));
+    
+    return pick(keys, obj);
+  });
+});
+
+},{"./all":3,"./contains":9,"./pick":32,"./register":38,"./reject":39}],31:[function(require,module,exports){
 var asArray = require('as-array');
 
 module.exports = function () {
@@ -530,7 +464,7 @@ module.exports = function () {
     return fn.apply(null, partialArgs.concat(appliedArgs));
   };
 };
-},{"as-array":44}],30:[function(require,module,exports){
+},{"as-array":48}],32:[function(require,module,exports){
 var register = require('./register');
 var all = require('./all');
 var promise = require('./promise');
@@ -549,7 +483,7 @@ module.exports = register('pick', function (keys, value) {
     return promise(returnObj);
   });
 });
-},{"./all":2,"./promise":32,"./register":35}],31:[function(require,module,exports){
+},{"./all":3,"./promise":35,"./register":38}],33:[function(require,module,exports){
 var register = require('./register');
 var all = require('./all');
 var promise = require('./promise');
@@ -561,17 +495,27 @@ module.exports = register('pluck', function (key, promises) {
     }));
   });
 });
-},{"./all":2,"./promise":32,"./register":35}],32:[function(require,module,exports){
+},{"./all":3,"./promise":35,"./register":38}],34:[function(require,module,exports){
+var register = require('./register');
+var first = require('./first');
+var promise = require('./promise');
+
+module.exports = register('prepend', function (stringToPrepend, value) {
+  return first(value).then(function (val) {
+    return promise('' + stringToPrepend + val + '');
+  });
+});
+},{"./first":18,"./promise":35,"./register":38}],35:[function(require,module,exports){
 var Promise = require('promise');
 
 module.exports = function (value) {
   if (typeof value === 'function') return new Promise(value);
   return Promise.from(value);
 };
-},{"promise":55}],33:[function(require,module,exports){
+},{"promise":53}],36:[function(require,module,exports){
 var register = require('./register');
 var asArray = require('as-array');
-var eachSeries = require('./each_series');
+var each = require('./each');
 var promise = require('./promise');
 
 module.exports = register('reduce', function (handler, promises) {
@@ -579,7 +523,7 @@ module.exports = register('reduce', function (handler, promises) {
   
   var accum = promises.shift();
   
-  return eachSeries(function (value, idx) {
+  return each.series(function (value, idx) {
     return promise(function (resolve, reject) {
       handler(accum, value, idx).then(function (val) {
         accum = promise(val);
@@ -590,7 +534,7 @@ module.exports = register('reduce', function (handler, promises) {
     return promise(accum);
   });
 });
-},{"./each_series":10,"./promise":32,"./register":35,"as-array":44}],34:[function(require,module,exports){
+},{"./each":11,"./promise":35,"./register":38,"as-array":48}],37:[function(require,module,exports){
 var asArray = require('as-array');
 var register = require('./register');
 var reduce = require('./reduce');
@@ -598,12 +542,14 @@ var reduce = require('./reduce');
 module.exports = register('reduceRight', function (handler, promises) {
   return reduce(handler, asArray(promises).reverse());
 });
-},{"./reduce":33,"./register":35,"as-array":44}],35:[function(require,module,exports){
+},{"./reduce":36,"./register":38,"as-array":48}],38:[function(require,module,exports){
 var asArray = require('as-array');
 var partial = require('./partial');
+var all = require('./all');
+var promise = require('./promise');
 
 // Main method to create new, partialized methods
-module.exports = function (name, fn, options) {
+var register = function (name, fn, options) {
   options = options || {};
   
   return function (handler, value) {
@@ -617,29 +563,35 @@ module.exports = function (name, fn, options) {
     return partial.apply(null, args);
   };
 };
-},{"./partial":29,"as-array":44}],36:[function(require,module,exports){
+
+register.operateOnValues = function(operation) {
+  return register('op', function (value1, value2) {
+    return all(value1, value2).then(function (values) {
+      return promise(operation(values[0], values[1]));
+    });
+  });
+}
+
+module.exports = register;
+},{"./all":3,"./partial":31,"./promise":35,"as-array":48}],39:[function(require,module,exports){
 var register = require('./register');
 var filter = require('./filter');
 var inverseBoolean = require('./inverse_boolean');
 
-module.exports = register('reject', function (handler, promises) {
-  return filter(function (promise, idx) {
-    return handler(promise, idx)
-      .then(inverseBoolean);
-  }, promises);
-});
-},{"./filter":14,"./inverse_boolean":22,"./register":35}],37:[function(require,module,exports){
-var register = require('./register');
-var filterSeries = require('./filter_series');
-var inverseBoolean = require('./inverse_boolean');
+var reject = register('reject', buildReject(filter));
+reject.series = register('rejectSeries', buildReject(filter.series));
 
-module.exports = register('rejectSeries', function (handler, promises) {
-  return filterSeries(function (promise, idx) {
-    return handler(promise, idx)
-      .then(inverseBoolean);
-  }, promises);
-});
-},{"./filter_series":15,"./inverse_boolean":22,"./register":35}],38:[function(require,module,exports){
+function buildReject (_filter) {
+  return function (handler, promises) {
+    return _filter(function (promise, idx) {
+      return handler(promise, idx)
+        .then(inverseBoolean);
+    }, promises);
+  };
+}
+
+module.exports = reject;
+},{"./filter":15,"./inverse_boolean":22,"./register":38}],40:[function(require,module,exports){
 var asArray = require('as-array');
 var promise = require('./promise');
 var first = require('./first');
@@ -656,14 +608,14 @@ reverse.values = function (value) {
 };
 
 module.exports = reverse;
-},{"./all":2,"./first":19,"./promise":32,"as-array":44}],39:[function(require,module,exports){
+},{"./all":3,"./first":18,"./promise":35,"as-array":48}],41:[function(require,module,exports){
 var find = require('./find');
 var bln = require('./boolean');
 
 module.exports = function (promises) {
   return find(bln, promises).then(bln);
 };
-},{"./boolean":4,"./find":16}],40:[function(require,module,exports){
+},{"./boolean":6,"./find":16}],42:[function(require,module,exports){
 var register = require('./register');
 var map = require('./map');
 var promise = require('./promise');
@@ -676,7 +628,13 @@ module.exports = register('sortBy', function (handler, promises) {
     }));
   });
 });
-},{"./map":25,"./promise":32,"./register":35}],41:[function(require,module,exports){
+},{"./map":27,"./promise":35,"./register":38}],43:[function(require,module,exports){
+var register = require('./register');
+
+module.exports = register.operateOnValues(function (a, b) {
+  return b - a;
+});
+},{"./register":38}],44:[function(require,module,exports){
 var asArray = require('as-array');
 var first = require('./first');
 var all = require('./all');
@@ -694,7 +652,7 @@ tail.values = function (value) {
 };
 
 module.exports = tail;
-},{"./all":2,"./first":19,"./promise":32,"as-array":44}],42:[function(require,module,exports){
+},{"./all":3,"./first":18,"./promise":35,"as-array":48}],45:[function(require,module,exports){
 var promise = require('./promise');
 var first = require('./first');
 
@@ -708,7 +666,7 @@ module.exports = function (value) {
       return promise(values);
     });
 };
-},{"./first":19,"./promise":32}],43:[function(require,module,exports){
+},{"./first":18,"./promise":35}],46:[function(require,module,exports){
 var register = require('./register');
 var promise = require('./promise');
 var filter = require('./filter');
@@ -728,7 +686,21 @@ module.exports = register('where', function (matchers, promises) {
     });
   }, promises);
 });
-},{"./filter":14,"./promise":32,"./register":35}],44:[function(require,module,exports){
+},{"./filter":15,"./promise":35,"./register":38}],47:[function(require,module,exports){
+var zipObject = require('zip-object');
+var register = require('./register');
+var promise = require('./promise');
+var all = require('./all');
+
+module.exports = register('zipObject', function (arr1, arr2) {
+  return all(arr1, arr2)
+    .then(function (values) {
+      return promise(zipObject.apply(null, values));
+    });
+}, {
+  partial: false
+});
+},{"./all":3,"./promise":35,"./register":38,"zip-object":55}],48:[function(require,module,exports){
 var isArgs = require('lodash.isarguments');
 
 module.exports = function (data) {
@@ -739,7 +711,7 @@ module.exports = function (data) {
     ? data
     : [data];
 };
-},{"lodash.isarguments":45}],45:[function(require,module,exports){
+},{"lodash.isarguments":49}],49:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -781,7 +753,7 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{}],46:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -836,22 +808,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],47:[function(require,module,exports){
-// var clone = require('clone');
-
-module.exports = function(options, defaults) {
-  options = options || {};
-
-  Object.keys(defaults).forEach(function(key) {
-    if (typeof options[key] === 'undefined') {
-      // options[key] = clone(defaults[key]);
-      options[key] = defaults[key];
-    }
-  });
-
-  return options;
-};
-},{}],48:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
 
@@ -931,111 +888,7 @@ module.exports = function extend() {
 	return target;
 };
 
-},{}],49:[function(require,module,exports){
-var asArray = require('as-array');
-var flatten = require('flatten');
-var isArguments = require('lodash.isarguments');
-var isObject = require('lodash.isobject');
-
-var flattenArguments = function () {
-  return flatten(argumentsToArray(arguments));
-};
-
-function argumentsToArray (args) {
-  return asArray(args)
-    .map(function (arg) {
-      if (!isArguments(arg)) return arg;
-      if (isObject(arg)) arg = argumentsToArray(arg);
-      
-      return asArray(arg);
-    });
-}
-
-module.exports = flattenArguments;
-},{"as-array":44,"flatten":50,"lodash.isarguments":51,"lodash.isobject":52}],50:[function(require,module,exports){
-module.exports = function flatten(list, depth) {
-  depth = (typeof depth == 'number') ? depth : Infinity;
-
-  return _flatten(list, 1);
-
-  function _flatten(list, d) {
-    return list.reduce(function (acc, item) {
-      if (Array.isArray(item) && d < depth) {
-        return acc.concat(_flatten(item, d + 1));
-      }
-      else {
-        return acc.concat(item);
-      }
-    }, []);
-  }
-};
-
-},{}],51:[function(require,module,exports){
-module.exports=require(45)
 },{}],52:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var objectTypes = require('lodash._objecttypes');
-
-/**
- * Checks if `value` is the language type of Object.
- * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
- *
- * @static
- * @memberOf _
- * @category Objects
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if the `value` is an object, else `false`.
- * @example
- *
- * _.isObject({});
- * // => true
- *
- * _.isObject([1, 2, 3]);
- * // => true
- *
- * _.isObject(1);
- * // => false
- */
-function isObject(value) {
-  // check if the value is the ECMAScript language type of Object
-  // http://es5.github.io/#x8
-  // and avoid a V8 bug
-  // http://code.google.com/p/v8/issues/detail?id=2291
-  return !!(value && objectTypes[typeof value]);
-}
-
-module.exports = isObject;
-
-},{"lodash._objecttypes":53}],53:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/** Used to determine if values are of the language type Object */
-var objectTypes = {
-  'boolean': false,
-  'function': true,
-  'object': true,
-  'number': false,
-  'string': false,
-  'undefined': false
-};
-
-module.exports = objectTypes;
-
-},{}],54:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap')
@@ -1142,7 +995,7 @@ function doResolve(fn, onFulfilled, onRejected) {
   }
 }
 
-},{"asap":56}],55:[function(require,module,exports){
+},{"asap":54}],53:[function(require,module,exports){
 'use strict';
 
 //This file contains then/promise specific extensions to the core promise API
@@ -1316,7 +1169,7 @@ Promise.race = function (values) {
   });
 }
 
-},{"./core.js":54,"asap":56}],56:[function(require,module,exports){
+},{"./core.js":52,"asap":54}],54:[function(require,module,exports){
 (function (process){
 
 // Use the fastest possible means to execute a task in a future turn
@@ -1433,7 +1286,7 @@ module.exports = asap;
 
 
 }).call(this,require("/Users/scott/www/modules/lag/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/Users/scott/www/modules/lag/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":46}],57:[function(require,module,exports){
+},{"/Users/scott/www/modules/lag/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":50}],55:[function(require,module,exports){
 var zipObject = function (keys, values) {
   if (arguments.length == 1) {
     values = keys[1];

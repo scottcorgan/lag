@@ -10,20 +10,13 @@ _.compose = require('./lib/compose');
 
 // Arrays
 
-// TODO: combine the "series" and "parallel" versions
-
 _.each = require('./lib/each');
-_.eachSeries = _.each.series;
 _.map = require('./lib/map');
-_.mapSeries = _.map.series;
 _.reduce = require('./lib/reduce');
 _.reduceRight = require('./lib/reduce_right');
 _.filter = require('./lib/filter');
-_.filterSeries = _.filter.series;
 _.reject = require('./lib/reject');
-_.rejectSeries = _.reject.series;
 _.find = require('./lib/find');
-_.findSeries = _.find.series;
 _.max = require('./lib/max');
 _.min = require('./lib/min');
 _.sortBy = require('./lib/sort_by');

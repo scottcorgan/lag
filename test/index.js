@@ -171,7 +171,7 @@ describe('arrays', function () {
     });
   });
   
-  it('#eachSeries()', function () {
+  it('#each.series()', function () {
     var called123 = false;
     var called456 = false
     var promise123 = _.promise(function (resolve, reject) {
@@ -181,7 +181,7 @@ describe('arrays', function () {
     });
     var promise456 = _.promise(456);
     
-    return _.eachSeries(function (promise, idx) {
+    return _.each.series(function (promise, idx) {
       return _.promise(function (resolve, reject) {
         promise.then(function (val) {
           if (val == 123) {
@@ -214,7 +214,7 @@ describe('arrays', function () {
     });
   });
   
-  it('#mapSeries', function () {
+  it('#map.series()', function () {
     var called123 = false;
     var called456 = false;
     
@@ -227,7 +227,7 @@ describe('arrays', function () {
       _.promise(456)
     ];
     
-    return _.mapSeries(function (promise) {
+    return _.map.series(function (promise) {
       return _.promise(function (resolve, reject) {
         promise.then(function (val) {
           if (val === 123) called123 = true;
@@ -304,7 +304,7 @@ describe('arrays', function () {
     });
   });
   
-  it('#filterSeries()', function () {
+  it('#filter.series()', function () {
     var called123 = false;
     var called456 = false;
     var promises = [
@@ -316,7 +316,7 @@ describe('arrays', function () {
       _.promise(456)
     ];
     
-    return _.filterSeries(function (promise, idx) {
+    return _.filter.series(function (promise, idx) {
       return promise.then(function (num) {
         if (num == 123) called123 = true;
         if (num == 456) called456 = true;
@@ -345,7 +345,7 @@ describe('arrays', function () {
     });
   });
   
-  it('#rejectSeries()', function () {
+  it('#reject.series()', function () {
     var called123 = false;
     var called456 = false;
     var promises = [
@@ -357,7 +357,7 @@ describe('arrays', function () {
       _.promise(456)
     ];
     
-    return _.rejectSeries(function (promise, idx) {
+    return _.reject.series(function (promise, idx) {
       return promise.then(function (num) {
         if (num == 123) called123 = true;
         if (num == 456) called456 = true;
@@ -395,7 +395,7 @@ describe('arrays', function () {
     });
   });
   
-  it('#findSeries', function () {
+  it('#find.series', function () {
     var called123 = false;
     var called456 = false;
     var promises = [
@@ -408,7 +408,7 @@ describe('arrays', function () {
       _.promise(789)
     ];
     
-    return _.findSeries(function (promise) {
+    return _.find.series(function (promise) {
       return _.promise(function (resolve, reject) {
         promise.then(function (num) {
           if (num == 123) called123 = true;
