@@ -1,11 +1,13 @@
 {
   "name": "lag",
-  "version": "0.0.7",
-  "description": "Functionally promises. Very functional.",
+  "version": "0.0.8",
+  "description": "Lag helps with functional promises.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/ --reporter spec",
-    "build-standalone": "node_modules/.bin/browserify index.js -o dist/lag.js"
+    "test": "npm run lint && mocha test/ --reporter spec",
+    "lint": "jshint index.js lib/",
+    "build-standalone": "node_modules/.bin/browserify index.js -o dist/lag.js",
+    "build-modules": "build/publish.js"
   },
   "repository": {
     "type": "git",
@@ -27,10 +29,15 @@
     "promise": "^4.0.0",
     "is-promise": "^1.0.0",
     "clone": "^0.1.11",
-    "lab": "^1.9.0",
     "mocha": "^1.18.2",
     "expect.js": "^0.3.1",
-    "browserify": "^3.33.0"
+    "browserify": "^3.33.0",
+    "jshint": "^2.4.4",
+    "mkdirp": "^0.3.5",
+    "detective": "^3.1.0",
+    "remove": "^0.1.5",
+    "npm": "^1.4.6",
+    "async": "^0.2.10"
   },
   "dependencies": {
     "promise": "^4.0.0",
@@ -40,5 +47,32 @@
     "flat-arguments": "^0.3.0",
     "defaults": "^1.0.0",
     "zip-object": "^0.1.0"
+  },
+  "jshintConfig": {
+    "expr": true,
+    "curly": false,
+    "eqeqeq": true,
+    "immed": true,
+    "latedef": false,
+    "newcap": true,
+    "noarg": true,
+    "sub": true,
+    "undef": true,
+    "unused": false,
+    "boss": true,
+    "eqnull": true,
+    "node": true,
+    "laxbreak": true,
+    "globals": {
+      "require": true,
+      "module": true,
+      "exports": true,
+      "it": true,
+      "describe": true,
+      "beforeEach": true,
+      "afterEach": true,
+      "chai": true,
+      "Regex": true
+    }
   }
 }

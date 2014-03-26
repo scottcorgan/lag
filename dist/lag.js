@@ -1,526 +1,707 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var lag = Object.create(null);
+
+lag.register = require('./lib/register');
+lag.promise = require('./lib/promise');
+lag.all = require('./lib/all');
+lag.partial = require('./lib/partial');
+lag.identity = require('./lib/identity');
+lag.boolean = require('./lib/boolean');
+lag.inverseBoolean = require('./lib/inverse_boolean');
+lag.compose = require('./lib/compose');
+
+// Arrays
+
+lag.each = require('./lib/each');
+lag.map = require('./lib/map');
+lag.reduce = require('./lib/reduce');
+lag.reduceRight = require('./lib/reduce_right');
+lag.filter = require('./lib/filter');
+lag.reject = require('./lib/reject');
+lag.find = require('./lib/find');
+lag.max = require('./lib/max');
+lag.min = require('./lib/min');
+lag.sortBy = require('./lib/sort_by');
+lag.at = require('./lib/at');
+lag.compact = require('./lib/compact');
+lag.first = require('./lib/first');
+lag.firstValue = lag.first.value;
+lag.last = require('./lib/last');
+lag.lastValue = lag.last.value;
+lag.initial = require('./lib/initial');
+lag.initialValues = lag.initial.values;
+lag.tail = require('./lib/tail');
+lag.tailValues = lag.tail.values;
+lag.reverse = require('./lib/reverse');
+lag.reverseValues = lag.reverse.values;
+
+// Collections
+
+lag.where = require('./lib/where');
+lag.findWhere = require('./lib/find_where');
+lag.pluck = require('./lib/pluck');
+lag.every = require('./lib/every');
+lag.some = require('./lib/some');
+lag.contains = require('./lib/contains');
+
+// Objects
+
+lag.keys = require('./lib/keys');
+lag.values = require('./lib/values');
+lag.extend = require('./lib/extend');
+lag.defaults = require('./lib/defaults');
+lag.pick = require('./lib/pick');
+lag.omit = require('./lib/omit');
+lag.zipObject = require('./lib/zip_object');
+
+// Strings
+
+lag.prepend = require('./lib/prepend');
+lag.append = require('./lib/append');
+
+// Utilities
+
+lag.equal = require('./lib/equal');
+lag.greaterThan = require('./lib/greater_than');
+lag.lessThan = require('./lib/less_than');
+lag.add = require('./lib/add');
+lag.subtract = require('./lib/subtract');
+lag.log = require('./lib/log');
+
+module.exports = lag;
+},{"./lib/add":2,"./lib/all":3,"./lib/append":4,"./lib/at":5,"./lib/boolean":6,"./lib/compact":7,"./lib/compose":8,"./lib/contains":9,"./lib/defaults":10,"./lib/each":11,"./lib/equal":12,"./lib/every":13,"./lib/extend":14,"./lib/filter":15,"./lib/find":16,"./lib/find_where":17,"./lib/first":18,"./lib/greater_than":19,"./lib/identity":20,"./lib/initial":21,"./lib/inverse_boolean":22,"./lib/keys":23,"./lib/last":24,"./lib/less_than":25,"./lib/log":26,"./lib/map":27,"./lib/max":28,"./lib/min":29,"./lib/omit":30,"./lib/partial":31,"./lib/pick":32,"./lib/pluck":33,"./lib/prepend":34,"./lib/promise":35,"./lib/reduce":36,"./lib/reduce_right":37,"./lib/register":38,"./lib/reject":39,"./lib/reverse":40,"./lib/some":41,"./lib/sort_by":42,"./lib/subtract":43,"./lib/tail":44,"./lib/values":45,"./lib/where":46,"./lib/zip_object":47}],2:[function(require,module,exports){
+var register = require('./register');
+
+module.exports = register.operateOnValues(function (a, b) {
+  return a + b;
+});
+},{"./register":38}],3:[function(require,module,exports){
 var Promise = require('promise');
 var asArray = require('as-array');
-var extend = require('extend');
-var flatten = require('flat-arguments');
-var zipObject = require('zip-object');
 
-var _ = {
-  _promiseFirst: false,
-  _functionFirst: true
+module.exports = function () {
+  return Promise.all.apply(null, asArray(arguments));
 };
+},{"as-array":48,"promise":53}],4:[function(require,module,exports){
+var register = require('./register');
+var first = require('./first');
+var promise = require('./promise');
 
-// (fn, promise) syntax
-_._method = function (name, fn) {
-  var method = this[name] = this._partialize(fn);
-  return method;
-};
+module.exports = register('append', function (stringToAppend, value) {
+  return first(value).then(function (val) {
+    return promise('' + val + stringToAppend + '');
+  });
+});
+},{"./first":18,"./promise":35,"./register":38}],5:[function(require,module,exports){
+var register = require('./register');
+var promise = require('./promise');
+var filter = require('./filter');
 
-// unlimited arguments syntax, but only one passed to initial partial
-_._partializedMethod = function (name, fn) {
-  return _[name] = function () {
-    // if (arguments.length === 1) {
-      
-    var args = flatten(asArray(arguments));
-    
-    // Promises or functions first?
-    if (_._promiseFirst) args = args.reverse();
-    
-    // If last argument isn't a promise, this is a partial
-    if (args.length === 1) {
-      return _.partial(function () {
-        return _[name].apply(null, asArray(arguments));
-      }, args);
-    }
-    
-    return fn.apply(null, args);
-  };
-};
+module.exports = register('at', function (indexes, promises) {
+  return filter.series(function (value, idx) {
+    return promise(indexes.indexOf(idx) > -1);
+  }, promises);
+});
+},{"./filter":15,"./promise":35,"./register":38}],6:[function(require,module,exports){
+var promise = require('./promise');
 
-_._fnFromArgs = function (args) {
-  var fn;
-  
-  if (_._promiseFirst) fn = args[args.length - 1];
-  else fn = args[0];
-  
-  return fn;
-};
-
-_._promisesFromArgs = function (args) {
-  var promises;
-  
-  if (!args[1]) return; // No promises
-  if (_._promiseFirst) promises =  flatten([].slice.call(args, 0, args.length -1));
-  else promises = flatten([].slice.call(args, 1));
-  
-  return promises;
-};
-
-_._args = function (args) {
-  var _args = {};
-  
-  // object
-  if (args[0] && args[0].fn) {
-    _args.fn = args[0].fn;
-    _args.promises = asArray(args[0].promises);
-  }
-  
-  // probably multiple arguments
-  if (args.length >= 1 && !args[0].fn) {
-    _args.fn = _._fnFromArgs(args);
-    _args.promises = _._promisesFromArgs(args);
-  }
-  
-  // Trun all values into promises
-  if (_args.promises) {
-    _args.promises = asArray(_args.promises).map(_.asPromise);
-  }
-  
-  return _args;
-};
-
-_._partialize = function (callback) {
-  return function () {
-    var args = _._args(arguments);
-    
-    args.fn = args.fn || function (promise, resolve) {resolve();};
-    
-    if (!args.promises) return _.partial(function (fn, promises) {
-      var args = _._args(arguments);
-      return callback(args);
-    }, args.fn);
-      
-    return callback(args);
-  };
-};
-
-_.promise = function (fn) {
-  return new Promise(fn || function () {});
-};
-
-_.asPromise = function (value) {
-  return Promise.from(value);
-};
-
-_.all = function () {
-  return Promise.all.apply(Promise, asArray(arguments));
-};
-
-_.partial = function () {
-  var partialArgs = asArray(arguments);
-  var fn = partialArgs.shift();
-  
-  return function () {
-    var appliedArgs = asArray(arguments);
-    return fn.apply(fn, partialArgs.concat(appliedArgs));
-  };
-};
-
-_.identity = function () {
-  return arguments[0];
-};
-
-_.boolean = function (promise) {
-  return _
-    .asPromise(promise)
+module.exports = function (value) {
+  return promise(value)
     .then(function (val) {
-      return _.asPromise(!!val);
+      return promise(!!val);
     });
 };
+},{"./promise":35}],7:[function(require,module,exports){
+var filter = require('./filter');
+var bln = require('./boolean');
 
-_.inverseBoolean = function (promise) {
-  return _.asPromise(promise)
-    .then(_.boolean)
-    .then(function (val) {
-      return _.asPromise(!val);
-    });
-};
+module.exports = filter(bln);
+},{"./boolean":6,"./filter":15}],8:[function(require,module,exports){
+var asArray = require('as-array');
+var promise = require('./promise');
 
-_.compose = function () {
+module.exports = function () {
   var fns = asArray(arguments).reverse();
   
   return function (promises) {
-    return _.promise(function (resolve, reject) {
-      executeFunction(promises)
+    return promise(function (resolve, reject) {
+      executeFunction(promises);
 
       function executeFunction (promises) {
         var fn = fns.shift();
         
         return fn
           ? fn(promises).then(executeFunction, reject)
-          : resolve(_.asPromise(promises));
-      };
+          : resolve(promise(promises));
+      }
     });
   };
 };
+},{"./promise":35,"as-array":48}],9:[function(require,module,exports){
+var register = require('./register');
+var find = require('./find');
+var equal = require('./equal');
+var bln = require('./boolean');
 
-_._isPromise = function (obj) {
-  return obj && typeof obj.then === 'function';
-};
+module.exports = register('contains', function (value, promises) {
+  return find(equal(value), promises).then(bln);
+});
+},{"./boolean":6,"./equal":12,"./find":16,"./register":38}],10:[function(require,module,exports){
+var asArray = require('as-array');
+var register = require('./register');
+var identity = require('./identity');
+var map = require('./map');
+var promise = require('./promise');
 
-_.promiseFirst = function () {
-  _._promiseFirst = true;
-  _._functionFirst = false;
-};
-
-_.functionFirst = function () {
-  _._promiseFirst = false;
-  _._functionFirst = true;
-};
-
-// Arrays
-
-_._method('each', function (args) {
-  var eachPromises = args.promises.map(function (promise, idx) {
-    return args.fn(promise, idx);
-  });
-  
-  return _.all(eachPromises);  
+module.exports = register('defaults', function () {
+  return map(identity, asArray(arguments).reverse())
+    .then(function (objects) {
+      return promise(defaults.apply(null, objects));
+    });
+}, {
+  partial: false
 });
 
-_._method('eachSeries', function (args) {  var _shouldExit = false;
-  var currentPromise = _.asPromise(true);
-  var promises = args.promises.map(function (promise, idx) {
+function defaults (options, _defaults) {
+  options = options || {};
+
+  Object.keys(_defaults).forEach(function(key) {
+    if (typeof options[key] === 'undefined') {
+      options[key] = _defaults[key];
+    }
+  });
+
+  return options;
+}
+},{"./identity":20,"./map":27,"./promise":35,"./register":38,"as-array":48}],11:[function(require,module,exports){
+var asArray = require('as-array');
+var register = require('./register');
+var promise = require('./promise');
+var all = require('./all');
+
+var each = register('each', function (handler, promises) {
+  return all(asArray(promises).map(function (value, idx) {
+    return handler(promise(value), idx);
+  }));
+});
+
+each.series = register('eachSeries', function (handler, promises) {
+  var currentPromise = promise(true);
+  var p = asArray(promises).map(function (value, idx) {
     return currentPromise = currentPromise.then(function () {
-      return args.fn(promise, idx);
-    })
-  });
-    
-  return _.all(promises);
-});
-
-
-['map', 'mapSeries'].forEach(function (name) {
-  _._method(name, function (args) {
-    var mapped = [];
-    var each = (name === 'map') ? 'each' : 'eachSeries';
-    
-    return _[each](function (promise, idx) {
-      return args.fn(promise, idx).then(mapped.push.bind(mapped));
-    }, args.promises).then(function () {
-      return _.all(mapped);
+      return handler(promise(value), idx);
     });
   });
+    
+  return all(p);
 });
 
+module.exports = each;
+},{"./all":3,"./promise":35,"./register":38,"as-array":48}],12:[function(require,module,exports){
+var register = require('./register');
 
-_._method('reduce', function (args) {
-  var accum = args.promises.shift();
-  
-  return _.eachSeries(function (promise, idx) {
-    return _.promise(function (resolve, reject) {
-      args.fn(accum, promise, idx).then(function (val) {
-        accum = _.asPromise(val);
-        resolve();
-      });
-    });
-  }, args.promises).then(function () {
-    return _.asPromise(accum);
+module.exports = register.operateOnValues(function (a, b) {
+  return a === b;
+});
+},{"./register":38}],13:[function(require,module,exports){
+var compact = require('./compact');
+var promise = require('./promise');
+
+module.exports = function (promises) {
+  return compact(promises).then(function (compacted) {
+    return promise(promises.length === compacted.length);
   });
-});
+};
+},{"./compact":7,"./promise":35}],14:[function(require,module,exports){
+var extend = require('extend');
+var asArray = require('as-array');
+var register = require('./register');
+var identity = require('./identity');
+var map = require('./map');
+var promise = require('./promise');
 
-_._method('reduceRight', function (args) {
-  args.promises = args.promises.reverse();
-  return _.reduce(args);
+module.exports = register('extend', function () {
+  return map(identity, asArray(arguments))
+    .then(function (objects) {
+      return promise(extend.apply(null, objects));
+    });
+}, {
+  parital: false
 });
+},{"./identity":20,"./map":27,"./promise":35,"./register":38,"as-array":48,"extend":51}],15:[function(require,module,exports){
+var register = require('./register');
+var each = require('./each');
+var all = require('./all');
 
-['filter', 'filterSeries'].forEach(function (name) {
-  _._method(name, function (args) {
+var filter = register('filter', buildFilter(each));
+filter.series = register('filterSeries', buildFilter(each.series));
+
+
+function buildFilter (_each) {
+  return function (handler, promises) {
     var filtered = [];
-    var each = (name === 'filter') ? 'each' : 'eachSeries';
     
-    return _[each](function (promise, idx) {
-      return args.fn(promise, idx).then(function (passed) {
+    return _each(function (promise, idx) {
+      return handler(promise, idx).then(function (passed) {
         if (passed) filtered.push(promise);
       });
-    }, args.promises).then(function () {
-      return _.all(filtered);
+    }, promises).then(function () {
+      return all(filtered);
     });
-  });
-});
+  };
+}
 
-['reject', 'rejectSeries'].forEach(function (name) {
-  _._method(name, function (args) {
-    var filter = (name === 'reject') ? 'filter' : 'filterSeries';
-    
-    return _[filter](function (promise, idx) {
-      return args.fn(promise, idx)
-        .then(_.inverseBoolean);
-    }, args.promises);
-  });
-});
+module.exports = filter;
+},{"./all":3,"./each":11,"./register":38}],16:[function(require,module,exports){
+var register = require('./register');
+var each = require('./each');
+var promise = require('./promise');
 
+var find = register('find', buildFind(each));
+find.series = register('findSeries', buildFind(each.series));
 
-['find', 'findSeries'].forEach(function (name) {
-  _._method(name, function (args) {
+function buildFind (_each) {
+  return function (handler, promises) {
     var wanted;
-    var each = (name === 'find') ? 'each': 'eachSeries';
     
-    return _[each](function (promise, idx) {
-      return args.fn(promise, idx).then(function (passed) {
+    return _each(function (value, idx) {
+      return handler(value, idx).then(function (passed) {
         
         // FIXME: this leaves some promises hanging
         // when no values match
         
-        // if (passed && !wanted) resolve(promise);
-        if (passed && !wanted) wanted = promise;
+        if (passed && !wanted) wanted = value;
       });
-    }, args.promises).then(function () {
-      return _.asPromise(wanted);
+    }, promises).then(function () {
+      return promise(wanted);
     });
-  });
+  };
+}
+
+module.exports = find;
+},{"./each":11,"./promise":35,"./register":38}],17:[function(require,module,exports){
+var register = require('./register');
+var promise = require('./promise');
+var find = require('./find');
+
+module.exports = register('where', function (matchers, promises) {
+  var keys = Object.keys(matchers);
+  
+  return find.series(function (value) {
+    return value.then(function (obj) {
+      var matching = false;
+      
+      keys.forEach(function (key) {
+        if (obj[key] === matchers[key]) matching = true;
+      });
+      
+      return promise(matching);
+    });
+  }, promises);
 });
+},{"./find":16,"./promise":35,"./register":38}],18:[function(require,module,exports){
+var asArray = require('as-array');
+var promise = require('./promise');
 
-
-_.compact = _.filter(_.boolean);
-
-_.first = function (promises) {
-  return _.asPromise(asArray(promises)[0]);
+var first = function (promises) {
+  return promise(asArray(promises)[0]);
 };
 
-_.firstValue = function (promise) {
-  return _.first(promise).then(function (arr) {
-    return _.asPromise(asArray(arr)[0]);
+first.value = function (value) {
+  return first(value).then(function (arr) {
+    return promise(asArray(arr)[0]);
   });
 };
 
-_.last = function (promises) {
-  return _.asPromise(promises[promises.length - 1]);
+module.exports = first;
+},{"./promise":35,"as-array":48}],19:[function(require,module,exports){
+var register = require('./register');
+
+module.exports = register.operateOnValues(function (a, b) {
+  return a < b;
+});
+},{"./register":38}],20:[function(require,module,exports){
+var promise = require('./promise');
+
+module.exports = function () {
+  return promise(arguments[0]);
+};
+},{"./promise":35}],21:[function(require,module,exports){
+var asArray = require('as-array');
+var all = require('./all');
+var promise = require('./promise');
+var first = require('./first');
+
+var initial = function (promises) {
+  return all(promises.slice(0, promises.length-1));
 };
 
-_.lastValue = function (promise) {
-  return _.first(promise).then(function (arr) {
+initial.values = function (value) {
+  return first(value).then(function (arr) {
     arr = asArray(arr);
-    return _.asPromise(arr[arr.length - 1]);
+    return promise(arr.slice(0, arr.length-1));
   });
 };
 
-_.initial = function (promises) {
-  return _.all(promises.slice(0, promises.length-1));
+module.exports = initial;
+},{"./all":3,"./first":18,"./promise":35,"as-array":48}],22:[function(require,module,exports){
+var promise = require('./promise');
+var bln = require('./boolean');
+
+module.exports = function (value) {
+  return promise(value)
+    .then(bln)
+    .then(function (val) {
+      return promise(!val);
+    });
+};
+},{"./boolean":6,"./promise":35}],23:[function(require,module,exports){
+var promise = require('./promise');
+var first = require('./first');
+
+module.exports = function (value) {
+  return promise(first(value).then(Object.keys));
+};
+},{"./first":18,"./promise":35}],24:[function(require,module,exports){
+var asArray = require('as-array');
+var promise = require('./promise');
+var first = require('./first');
+
+var last = function (promises) {
+  return promise(promises[promises.length - 1]);
 };
 
-_.initialValues = function (promise) {
-  return _.first(promise).then(function (arr) {
+last.value = function (value) {
+  return first(value).then(function (arr) {
     arr = asArray(arr);
-    return _.asPromise(arr.slice(0, arr.length-1));
+    return promise(arr[arr.length - 1]);
   });
 };
 
-_.tail = function (promises) {
-  return _.all(promises.slice(1));
-};
+module.exports = last;
+},{"./first":18,"./promise":35,"as-array":48}],25:[function(require,module,exports){
+var register = require('./register');
 
-_.tailValues = function (promise) {
-  return _.first(promise).then(function (arr) {
-    arr = asArray(arr);
-    return _.asPromise(arr.slice(1));
+module.exports = register.operateOnValues(function (a, b) {
+  return a > b;
+});
+},{"./register":38}],26:[function(require,module,exports){
+var promise = require('./promise');
+
+module.exports = function (value) {
+  return value.then(function (val) {
+    console.log(val);
+    return promise(val);
   });
 };
+},{"./promise":35}],27:[function(require,module,exports){
+var register = require('./register');
+var each = require('./each');
+var all = require('./all');
 
-_.reverse = function (promises) {
-  return _.all(promises.reverse());
-};
+var map = register('map', buildMap(each));
+map.series = register('mapSeries', buildMap(each.series));
 
-_.reverseValues = function (promise) {
-  return _.first(promise).then(function (arr) {
-    return _.asPromise(arr.reverse());
-  });
-};
-
-// Collections
-
-['where', 'findWhere'].forEach(function (name) {
-  _._method(name, function (args) {
-    var where = args.fn;
-    var keys = Object.keys(where);
-    var find = (name === 'where') ? 'filter': 'find';
+function buildMap (_each) {
+  return function (handler, promises) {
+    var mapped = [];
     
-    return _[find](function (promise) {
-      return promise.then(function (obj) {
-        var matching = false;
-        
-        keys.forEach(function (key) {
-          if (obj[key] === where[key]) matching = true;
-        });
-        
-        return _.asPromise(matching);
-        });
-    }, args.promises)
+    return _each(function (promise, idx) {
+      return handler(promise, idx).then(mapped.push.bind(mapped));
+    }, promises).then(function () {
+      return all(mapped);
+    });
+  };
+}
+
+module.exports = map;
+},{"./all":3,"./each":11,"./register":38}],28:[function(require,module,exports){
+var all = require('./all');
+var promise = require('./promise');
+
+module.exports = function (promises) {
+  return all(promises).then(function (values) {
+    return promise(Math.max.apply(Math, values));
+  });
+};
+},{"./all":3,"./promise":35}],29:[function(require,module,exports){
+var all = require('./all');
+var promise = require('./promise');
+
+module.exports = function (promises) {
+  return all(promises).then(function (values) {
+    return promise(Math.min.apply(Math, values));
+  });
+};
+},{"./all":3,"./promise":35}],30:[function(require,module,exports){
+var register = require('./register');
+var all = require('./all');
+var pick = require('./pick');
+var contains = require('./contains');
+var reject = require('./reject');
+
+module.exports = register('omit', function (keys, promise) {
+  return all(promise, all(keys)).then(function (results) {
+    var obj = results[0];
+    var keysToRemove = results[1];
+      
+    var keys = reject(function (key) {
+      return contains(key, keysToRemove);
+    }, Object.keys(obj));
+    
+    return pick(keys, obj);
   });
 });
 
-_._method('pluck', function (args) {
-  return _.all(args.promises).then(function (res) {
-    return _.asPromise(res.map(function (obj) {
-      return obj[args.fn];
+},{"./all":3,"./contains":9,"./pick":32,"./register":38,"./reject":39}],31:[function(require,module,exports){
+var asArray = require('as-array');
+
+module.exports = function () {
+  var partialArgs = asArray(arguments);
+  var fn = partialArgs.shift();
+  
+  return function () {
+    var appliedArgs = asArray(arguments);
+    return fn.apply(null, partialArgs.concat(appliedArgs));
+  };
+};
+},{"as-array":48}],32:[function(require,module,exports){
+var register = require('./register');
+var all = require('./all');
+var promise = require('./promise');
+
+module.exports = register('pick', function (keys, value) {
+  var returnObj = {};
+  
+  return all(value, all(keys)).then(function (results) {
+    var obj = results[0];
+    var resolvedKeys = results[1];
+    
+    resolvedKeys.forEach(function (key) {
+      returnObj[key] = obj[key];
+    });
+    
+    return promise(returnObj);
+  });
+});
+},{"./all":3,"./promise":35,"./register":38}],33:[function(require,module,exports){
+var register = require('./register');
+var all = require('./all');
+var promise = require('./promise');
+
+module.exports = register('pluck', function (key, promises) {
+  return all(promises).then(function (res) {
+    return promise(res.map(function (obj) {
+      return obj[key];
     }));
   });
 });
+},{"./all":3,"./promise":35,"./register":38}],34:[function(require,module,exports){
+var register = require('./register');
+var first = require('./first');
+var promise = require('./promise');
 
-_.every = function (promises) {
-  return _.compact(promises).then(function (compacted) {
-    return _.asPromise(promises.length === compacted.length);
+module.exports = register('prepend', function (stringToPrepend, value) {
+  return first(value).then(function (val) {
+    return promise('' + stringToPrepend + val + '');
+  });
+});
+},{"./first":18,"./promise":35,"./register":38}],35:[function(require,module,exports){
+var Promise = require('promise');
+
+module.exports = function (value) {
+  if (typeof value === 'function') return new Promise(value);
+  return Promise.from(value);
+};
+},{"promise":53}],36:[function(require,module,exports){
+var register = require('./register');
+var asArray = require('as-array');
+var each = require('./each');
+var promise = require('./promise');
+
+module.exports = register('reduce', function (handler, promises) {
+  promises = asArray(promises);
+  
+  var accum = promises.shift();
+  
+  return each.series(function (value, idx) {
+    return promise(function (resolve, reject) {
+      handler(accum, value, idx).then(function (val) {
+        accum = promise(val);
+        resolve();
+      });
+    });
+  }, promises).then(function () {
+    return promise(accum);
+  });
+});
+},{"./each":11,"./promise":35,"./register":38,"as-array":48}],37:[function(require,module,exports){
+var asArray = require('as-array');
+var register = require('./register');
+var reduce = require('./reduce');
+
+module.exports = register('reduceRight', function (handler, promises) {
+  return reduce(handler, asArray(promises).reverse());
+});
+},{"./reduce":36,"./register":38,"as-array":48}],38:[function(require,module,exports){
+var asArray = require('as-array');
+var partial = require('./partial');
+var all = require('./all');
+var promise = require('./promise');
+
+// Main method to create new, partialized methods
+var register = function (name, fn, options) {
+  options = options || {};
+  
+  return function (handler, value) {
+    var args = asArray(arguments);
+    
+    // All arguments
+    if (args.length > 1 && !options.partial) return fn.apply(null, args);    
+    
+    // Partial handler
+    args.unshift(fn);
+    return partial.apply(null, args);
+  };
+};
+
+register.operateOnValues = function(operation) {
+  return register('op', function (value1, value2) {
+    return all(value1, value2).then(function (values) {
+      return promise(operation(values[0], values[1]));
+    });
   });
 };
 
-_.some = function (promises) {
-  return _
-    .find(_.boolean, promises)
-    .then(_.boolean);
+module.exports = register;
+},{"./all":3,"./partial":31,"./promise":35,"as-array":48}],39:[function(require,module,exports){
+var register = require('./register');
+var filter = require('./filter');
+var inverseBoolean = require('./inverse_boolean');
+
+var reject = register('reject', buildReject(filter));
+reject.series = register('rejectSeries', buildReject(filter.series));
+
+function buildReject (_filter) {
+  return function (handler, promises) {
+    return _filter(function (promise, idx) {
+      return handler(promise, idx)
+        .then(inverseBoolean);
+    }, promises);
+  };
+}
+
+module.exports = reject;
+},{"./filter":15,"./inverse_boolean":22,"./register":38}],40:[function(require,module,exports){
+var asArray = require('as-array');
+var promise = require('./promise');
+var first = require('./first');
+var all = require('./all');
+
+var reverse = function (promises) {
+  return all(promises.reverse());
 };
 
-_._method('contains', function (args) {
-  var value = args.fn;
-  
-  return _
-    .find(_.equal(value), args.promises)
-    .then(_.boolean);
+reverse.values = function (value) {
+  return first(value).then(function (arr) {
+    return promise(arr.reverse());
+  });
+};
+
+module.exports = reverse;
+},{"./all":3,"./first":18,"./promise":35,"as-array":48}],41:[function(require,module,exports){
+var find = require('./find');
+var bln = require('./boolean');
+
+module.exports = function (promises) {
+  return find(bln, promises).then(bln);
+};
+},{"./boolean":6,"./find":16}],42:[function(require,module,exports){
+var register = require('./register');
+var map = require('./map');
+var promise = require('./promise');
+
+// Sort in ascending order
+module.exports = register('sortBy', function (handler, promises) {
+  return map(handler, promises).then(function (values) {
+    return promise(values.sort(function (a, b) {
+      return a - b;
+    }));
+  });
 });
+},{"./map":27,"./promise":35,"./register":38}],43:[function(require,module,exports){
+var register = require('./register');
 
-// Objects
+module.exports = register.operateOnValues(function (a, b) {
+  return b - a;
+});
+},{"./register":38}],44:[function(require,module,exports){
+var asArray = require('as-array');
+var first = require('./first');
+var all = require('./all');
+var promise = require('./promise');
 
-_.keys = function (promise) {
-  return _.first(promise)
-    .then(function (obj) {
-      return _.asPromise(Object.keys(obj));
-    });
+var tail = function (promises) {
+  return all(promises.slice(1));
 };
 
+tail.values = function (value) {
+  return first(value).then(function (arr) {
+    arr = asArray(arr);
+    return promise(arr.slice(1));
+  });
+};
 
-_.values = function (promise) {
-  return _.first(promise)
+module.exports = tail;
+},{"./all":3,"./first":18,"./promise":35,"as-array":48}],45:[function(require,module,exports){
+var promise = require('./promise');
+var first = require('./first');
+
+module.exports = function (value) {
+  return first(value)
     .then(function (obj) {
       var values = Object.keys(obj).map(function (key) {
         return obj[key];
       });
     
-      return _.asPromise(values);
+      return promise(values);
     });
 };
+},{"./first":18,"./promise":35}],46:[function(require,module,exports){
+var register = require('./register');
+var promise = require('./promise');
+var filter = require('./filter');
 
-_._partializedMethod('extend', function () {
-  return _
-    .map(_.identity, flatten(arguments))
-    .then(function (objects) {
-      return _.asPromise(extend.apply(null, objects));
-    });
-});
-
-_._partializedMethod('defaults', function () {
-  return _
-    .map(_.identity, flatten(arguments).reverse())
-    .then(function (objects) {
-      return _.asPromise(defaults.apply(null, objects));
-    });
-});
-
-// TODO: make these
-// _._methodWithMultipleFns
-// _._methodWithMultiplePromises
-
-_._partializedMethod('pick', function () {
-  var args = asArray(arguments);
+module.exports = register('where', function (matchers, promises) {
+  var keys = Object.keys(matchers);
   
-  return _.last(args).then(function (obj) {
-    return _.initial(args).then(function (keys) {
-      var returnObj = {};
+  return filter(function (value) {
+    return value.then(function (obj) {
+      var matching = false;
       
       keys.forEach(function (key) {
-        returnObj[key] = obj[key];
+        if (obj[key] === matchers[key]) matching = true;
       });
       
-      return _.asPromise(returnObj);
+      return promise(matching);
     });
-  });
+  }, promises);
 });
+},{"./filter":15,"./promise":35,"./register":38}],47:[function(require,module,exports){
+var zipObject = require('zip-object');
+var register = require('./register');
+var promise = require('./promise');
+var all = require('./all');
 
-_._partializedMethod('omit', function () {
-  var args = asArray(arguments);
-  
-  return _.last(args).then(function (obj) {
-    return _.initial(args).then(function (keysToRemove) {      
-      
-      var keys = _.reject(function (key) {
-        return _.contains(key, keysToRemove);
-      }, Object.keys(obj));
-      
-      return _.pick(keys, obj);
-    });
-  });
-});
-
-_.zipObject = function (arr1, arr2) {
-  return _.all(arr1, arr2)
+module.exports = register('zipObject', function (arr1, arr2) {
+  return all(arr1, arr2)
     .then(function (values) {
-      return _.asPromise(zipObject.apply(null, values));
+      return promise(zipObject.apply(null, values));
     });
-};
-
-// Strings
-
-_._method('prepend', function (args) {
-  return _.first(args.promises).then(function (val) {
-    return _.asPromise('' + args.fn + val + '');
-  });
+}, {
+  partial: false
 });
-
-_._method('append', function (args) {
-  return _.first(args.promises).then(function (val) {
-    return _.asPromise('' + val + args.fn + '');
-  });
-});
-
-// Utilities
-
-_._method('equal', operateOnValues(function (a, b) {
-  return a === b;
-}));
-
-_._method('greaterThan', operateOnValues(function (a, b) {
-  return a < b;
-}));
-
-_._method('lessThan', operateOnValues(function (a, b) {
-  return a > b;
-}));
-
-_._method('add', operateOnValues(function (a, b) {
-  return a + b;
-}));
-
-_._method('subtract', operateOnValues(function (a, b) {
-  return b - a;
-}));
-
-function operateOnValues(operation) {
-  return function (args) {
-    return _.all(args.fn, args.promises[0]).then(function (values) {
-      return _.asPromise(operation(values[0], values[1]));
-    });
-  };
-}
-
-_.log = function (promise) {
-  return promise.then(function (val) {
-    console.log(val);
-    return _.asPromise(val);
-  });
-};
-
-module.exports = _;
-
-function defaults (options, defaults) {
-  options = options || {};
-
-  Object.keys(defaults).forEach(function(key) {
-    if (typeof options[key] === 'undefined') {
-      options[key] = defaults[key];
-    }
-  });
-
-  return options;
-};
-},{"as-array":2,"extend":5,"flat-arguments":6,"promise":12,"zip-object":14}],2:[function(require,module,exports){
+},{"./all":3,"./promise":35,"./register":38,"zip-object":55}],48:[function(require,module,exports){
 var isArgs = require('lodash.isarguments');
 
 module.exports = function (data) {
@@ -531,7 +712,7 @@ module.exports = function (data) {
     ? data
     : [data];
 };
-},{"lodash.isarguments":3}],3:[function(require,module,exports){
+},{"lodash.isarguments":49}],49:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -573,7 +754,7 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{}],4:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -628,7 +809,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],5:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
 
@@ -708,111 +889,7 @@ module.exports = function extend() {
 	return target;
 };
 
-},{}],6:[function(require,module,exports){
-var asArray = require('as-array');
-var flatten = require('flatten');
-var isArguments = require('lodash.isarguments');
-var isObject = require('lodash.isobject');
-
-var flattenArguments = function () {
-  return flatten(argumentsToArray(arguments));
-};
-
-function argumentsToArray (args) {
-  return asArray(args)
-    .map(function (arg) {
-      if (!isArguments(arg)) return arg;
-      if (isObject(arg)) arg = argumentsToArray(arg);
-      
-      return asArray(arg);
-    });
-}
-
-module.exports = flattenArguments;
-},{"as-array":2,"flatten":7,"lodash.isarguments":8,"lodash.isobject":9}],7:[function(require,module,exports){
-module.exports = function flatten(list, depth) {
-  depth = (typeof depth == 'number') ? depth : Infinity;
-
-  return _flatten(list, 1);
-
-  function _flatten(list, d) {
-    return list.reduce(function (acc, item) {
-      if (Array.isArray(item) && d < depth) {
-        return acc.concat(_flatten(item, d + 1));
-      }
-      else {
-        return acc.concat(item);
-      }
-    }, []);
-  }
-};
-
-},{}],8:[function(require,module,exports){
-module.exports=require(3)
-},{}],9:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var objectTypes = require('lodash._objecttypes');
-
-/**
- * Checks if `value` is the language type of Object.
- * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
- *
- * @static
- * @memberOf _
- * @category Objects
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if the `value` is an object, else `false`.
- * @example
- *
- * _.isObject({});
- * // => true
- *
- * _.isObject([1, 2, 3]);
- * // => true
- *
- * _.isObject(1);
- * // => false
- */
-function isObject(value) {
-  // check if the value is the ECMAScript language type of Object
-  // http://es5.github.io/#x8
-  // and avoid a V8 bug
-  // http://code.google.com/p/v8/issues/detail?id=2291
-  return !!(value && objectTypes[typeof value]);
-}
-
-module.exports = isObject;
-
-},{"lodash._objecttypes":10}],10:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/** Used to determine if values are of the language type Object */
-var objectTypes = {
-  'boolean': false,
-  'function': true,
-  'object': true,
-  'number': false,
-  'string': false,
-  'undefined': false
-};
-
-module.exports = objectTypes;
-
-},{}],11:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap')
@@ -919,7 +996,7 @@ function doResolve(fn, onFulfilled, onRejected) {
   }
 }
 
-},{"asap":13}],12:[function(require,module,exports){
+},{"asap":54}],53:[function(require,module,exports){
 'use strict';
 
 //This file contains then/promise specific extensions to the core promise API
@@ -1093,7 +1170,7 @@ Promise.race = function (values) {
   });
 }
 
-},{"./core.js":11,"asap":13}],13:[function(require,module,exports){
+},{"./core.js":52,"asap":54}],54:[function(require,module,exports){
 (function (process){
 
 // Use the fastest possible means to execute a task in a future turn
@@ -1210,7 +1287,7 @@ module.exports = asap;
 
 
 }).call(this,require("/Users/scott/www/modules/lag/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/Users/scott/www/modules/lag/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4}],14:[function(require,module,exports){
+},{"/Users/scott/www/modules/lag/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":50}],55:[function(require,module,exports){
 var zipObject = function (keys, values) {
   if (arguments.length == 1) {
     values = keys[1];
