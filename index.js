@@ -1,5 +1,5 @@
 var fs = require('fs');
-var modules = fs.readdirSync('./lib')
+var modules = fs.readdirSync('./lib');
 var lag = Object.create(null);
 
 // Load all the modules
