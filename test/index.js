@@ -9,7 +9,6 @@ var isPromise = require('is-promise');
 TODO
 ==============
 - angular support
-- move to seprate folders/modules
 
  */
  
