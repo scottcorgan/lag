@@ -69,67 +69,16 @@ _.zipObject = require('./lib/zip_object');
 
 // Strings
 
-_.register('prepend', function (stringToPrepend, promise) {
-  return _.first(promise).then(function (val) {
-    return _.promise('' + stringToPrepend + val + '');
-  });
-});
-
-_.register('append', function (stringToAppend, promise) {
-  return _.first(promise).then(function (val) {
-    return _.promise('' + val + stringToAppend + '');
-  });
-});
+_.prepend = require('./lib/prepend');
+_.append = require('./lib/append');
 
 // Utilities
 
 _.equal = require('./lib/equal');
-
-// _.register('equal', operateOnValues(function (a, b) {
-//   return a === b;
-// }));
-
-_.register('greaterThan', operateOnValues(function (a, b) {
-  return a < b;
-}));
-
-_.register('lessThan', operateOnValues(function (a, b) {
-  return a > b;
-}));
-
-_.register('add', operateOnValues(function (a, b) {
-  return a + b;
-}));
-
-_.register('subtract', operateOnValues(function (a, b) {
-  return b - a;
-}));
-
-function operateOnValues(operation) {
-  return function (value1, value2) {
-    return _.all(value1, value2).then(function (values) {
-      return _.promise(operation(values[0], values[1]));
-    });
-  };
-}
-
-_.log = function (promise) {
-  return promise.then(function (val) {
-    console.log(val);
-    return _.promise(val);
-  });
-};
+_.greaterThan = require('./lib/greater_than');
+_.lessThan = require('./lib/less_than');
+_.add = require('./lib/add');
+_.subtract = require('./lib/subtract');
+_.log = require('./lib/log');
 
 module.exports = _;
-
-function defaults (options, defaults) {
-  options = options || {};
-
-  Object.keys(defaults).forEach(function(key) {
-    if (typeof options[key] === 'undefined') {
-      options[key] = defaults[key];
-    }
-  });
-
-  return options;
-};
