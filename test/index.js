@@ -476,8 +476,8 @@ describe('arrays', function () {
     });
   });
   
-  it('#firstValue(), gets the first value of a resolve promise', function () {
-    return _.firstValue(_.promise([1,2,3])).then(function (res) {
+  it('#first.value(), gets the first value of a resolve promise', function () {
+    return _.first.value(_.promise([1,2,3])).then(function (res) {
       expect(res).to.equal(1);
     });
   });
@@ -494,8 +494,8 @@ describe('arrays', function () {
     });
   });
   
-  it('#lastValue(), gets the last value of a resolve promise', function () {
-    return _.lastValue(_.promise([1,2,3])).then(function (res) {
+  it('#last.value(), gets the last value of a resolve promise', function () {
+    return _.last.value(_.promise([1,2,3])).then(function (res) {
       expect(res).to.equal(3);
     });
   });
@@ -512,8 +512,8 @@ describe('arrays', function () {
     });
   });
   
-  it('#initialValues(), all but the last values of a resolved promise', function () {
-    return _.initialValues(_.promise([1,2,3])).then(function (res) {
+  it('#initial.values(), all but the last values of a resolved promise', function () {
+    return _.initial.values(_.promise([1,2,3])).then(function (res) {
       expect(res).to.eql([1,2]);
     });
   });
@@ -530,8 +530,8 @@ describe('arrays', function () {
     });
   });
   
-  it('#tailValues()', function () {
-    return _.tailValues(_.promise([1,2,3])).then(function (res) {
+  it('#tail.values()', function () {
+    return _.tail.values(_.promise([1,2,3])).then(function (res) {
       expect(res).to.eql([2, 3]);
     });
   });
@@ -548,8 +548,8 @@ describe('arrays', function () {
     });
   });
   
-  it('#reverseValues()', function () {
-    return _.reverseValues(_.promise([1,2,3])).then(function (arr) {
+  it('#reverse.values()', function () {
+    return _.reverse.values(_.promise([1,2,3])).then(function (arr) {
       expect(arr).to.eql([3,2,1]);
     });
   });
