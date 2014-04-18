@@ -37,8 +37,6 @@ Object
     generateReadme(pathname, lowercaseName, alias);
   });
 
-return;
-
 // Publish modules to NPM
 var moduleNum = 0;
 npm.load({
