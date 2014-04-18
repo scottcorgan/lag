@@ -4,6 +4,7 @@ var lag = Object.create(null);
 lag.register = require('./lib/register');
 lag.promise = require('./lib/promise');
 lag.all = require('./lib/all');
+lag.when = lag.all;
 lag.partial = require('./lib/partial');
 lag.identity = require('./lib/identity');
 lag.boolean = require('./lib/boolean');

@@ -24,6 +24,13 @@ describe('basic promising', function () {
     });
   });
   
+  it('aliases "all" with when', function () {
+    return _.when([_.promise(123), _.promise(456)]).then(function (values) {
+      expect(values[0]).to.equal(123);
+      expect(values[1]).to.equal(456);
+    });
+  });
+  
   it('partially applies functions and arguments', function () {
     var activity = function (arg1, arg2) {
       expect(arg1).to.equal('arg1');

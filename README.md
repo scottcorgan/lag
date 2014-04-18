@@ -102,7 +102,8 @@ _.map(_.add(1), promises)
 * **[Utilities](#utilities)**
   * [promise](#promisefunction)
   * [asPromise](#aspromisevalue)
-  * [all](#allpromise1-promise2-promisen-)
+  * [all](#allpromise1-promise2-promisen-) (alias of "when")
+  * [when](#whenpromise1-promise2-promisen-) (alias of "all")
   * [partial](#partialfunction-value1-valuen-)
   * [boolean](#booleanvalue)
   * [inverseBoolean](#inversebooleanvalue)
@@ -215,6 +216,8 @@ _.map(_.add(1), promises)
 ### asPromise(value)
 
 ### all(promise1[, promise2, promisen, ...])
+
+### when(promise1[, promise2, promisen, ...])
 
 ### partial(function[, value1, valuen, ...])
 

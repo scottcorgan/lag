@@ -1,2 +1,3 @@
-buildMap	lib/map.js	8
-activity	test/index.js	28
+buildMap	lib/map.js	9
+exports	lib/all.js	4
+activity	test/index.js	35
