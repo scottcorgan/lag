@@ -1,13 +1,14 @@
 {
   "name": "lag",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Lag helps with functional promises.",
   "main": "index.js",
   "scripts": {
     "test": "npm run lint && mocha test/ --reporter spec",
     "lint": "jshint index.js lib/",
+    "commit": "npm run test && npm run build-standalone && git add . && git commit",
     "build-standalone": "node_modules/.bin/browserify index.js -o dist/lag.js",
-    "build-modules": "build/publish.js"
+    "publish-modules": "npm test && build/publish.js"
   },
   "repository": {
     "type": "git",

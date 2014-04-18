@@ -35,21 +35,6 @@ describe('basic promising', function () {
     return doThis('arg2');
   });
   
-  // it('calls a method with an object of arguments', function () {
-  //   var promise = _.promise(function (resolve) {
-  //     resolve({
-  //       key: 'value'
-  //     });
-  //   });
-    
-  //   return _.pluck({
-  //     fn: 'key',
-  //     promises: promise
-  //   }).then(function (val) {
-  //     expect(val).to.eql(['value']);
-  //   });
-  // });
-  
   it('#identity()', function () {
     return _.identity(_.promise(123)).then(function (val) {
       expect(val).to.equal(123);

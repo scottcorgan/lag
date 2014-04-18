@@ -25,15 +25,10 @@ lag.sortBy = require('./lib/sort_by');
 lag.at = require('./lib/at');
 lag.compact = require('./lib/compact');
 lag.first = require('./lib/first');
-lag.firstValue = lag.first.value;
 lag.last = require('./lib/last');
-lag.lastValue = lag.last.value;
 lag.initial = require('./lib/initial');
-lag.initialValues = lag.initial.values;
 lag.tail = require('./lib/tail');
-lag.tailValues = lag.tail.values;
 lag.reverse = require('./lib/reverse');
-lag.reverseValues = lag.reverse.values;
 
 // Collections
 

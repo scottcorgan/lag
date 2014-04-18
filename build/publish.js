@@ -45,7 +45,7 @@ npm.load({
     });
   }, function (err) {
     if (err) console.error('ERROR:', err);
-    else console.log('SUCCESS:', moduleNum, 'modules published');
+    else console.log('\n\nSUCCESS:', moduleNum, 'modules published');
   });
 });
 
