@@ -1,3 +1,8 @@
 buildMap	lib/map.js	9
 exports	lib/all.js	4
 activity	test/index.js	35
+generateModuleFile	build/publish.js	53
+generatePackage	build/publish.js	63
+generateReadme	build/publish.js	79
+dependencies	build/publish.js	96
+unCamelCase	build/publish.js	115

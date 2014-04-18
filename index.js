@@ -3,7 +3,7 @@ var lag = Object.create(null);
 lag.register = require('./lib/register');
 lag.promise = require('./lib/promise');
 lag.all = require('./lib/all');
-lag.when = lag.all;
+lag.when = alias('all');
 lag.partial = require('./lib/partial');
 lag.identity = require('./lib/identity');
 lag.boolean = require('./lib/boolean');
@@ -28,6 +28,7 @@ lag.first = require('./lib/first');
 lag.last = require('./lib/last');
 lag.initial = require('./lib/initial');
 lag.tail = require('./lib/tail');
+lag.rest = alias('tail');
 lag.reverse = require('./lib/reverse');
 
 // Collections
@@ -62,5 +63,16 @@ lag.lessThan = require('./lib/less_than');
 lag.add = require('./lib/add');
 lag.subtract = require('./lib/subtract');
 lag.log = require('./lib/log');
+
+// Private Helper Functions
+
+function alias (sourceName) {
+  var m = lag[sourceName];
+  
+  m._aliased = true;
+  m._sourceName = sourceName;
+  
+  return m;
+}
 
 module.exports = lag;

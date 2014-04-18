@@ -4,7 +4,7 @@ var lag = Object.create(null);
 lag.register = require('./lib/register');
 lag.promise = require('./lib/promise');
 lag.all = require('./lib/all');
-lag.when = lag.all;
+lag.when = alias('all');
 lag.partial = require('./lib/partial');
 lag.identity = require('./lib/identity');
 lag.boolean = require('./lib/boolean');
@@ -29,6 +29,7 @@ lag.first = require('./lib/first');
 lag.last = require('./lib/last');
 lag.initial = require('./lib/initial');
 lag.tail = require('./lib/tail');
+lag.rest = alias('tail');
 lag.reverse = require('./lib/reverse');
 
 // Collections
@@ -63,6 +64,17 @@ lag.lessThan = require('./lib/less_than');
 lag.add = require('./lib/add');
 lag.subtract = require('./lib/subtract');
 lag.log = require('./lib/log');
+
+// Private Helper Functions
+
+function alias (sourceName) {
+  var m = lag[sourceName];
+  
+  m._aliased = true;
+  m._sourceName = sourceName;
+  
+  return m;
+}
 
 module.exports = lag;
 },{"./lib/add":2,"./lib/all":3,"./lib/append":4,"./lib/at":5,"./lib/boolean":6,"./lib/compact":7,"./lib/compose":8,"./lib/contains":9,"./lib/defaults":10,"./lib/each":11,"./lib/equal":12,"./lib/every":13,"./lib/extend":14,"./lib/filter":15,"./lib/find":16,"./lib/find_where":17,"./lib/first":18,"./lib/greater_than":19,"./lib/identity":20,"./lib/initial":21,"./lib/inverse_boolean":22,"./lib/keys":23,"./lib/last":24,"./lib/less_than":25,"./lib/log":26,"./lib/map":27,"./lib/max":28,"./lib/min":29,"./lib/omit":30,"./lib/partial":31,"./lib/pick":32,"./lib/pluck":33,"./lib/prepend":34,"./lib/promise":35,"./lib/reduce":36,"./lib/reduce_right":37,"./lib/register":38,"./lib/reject":39,"./lib/reverse":40,"./lib/some":41,"./lib/sort_by":42,"./lib/subtract":43,"./lib/tail":44,"./lib/values":45,"./lib/where":46,"./lib/zip_object":47}],2:[function(require,module,exports){

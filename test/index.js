@@ -518,6 +518,18 @@ describe('arrays', function () {
     });
   });
   
+  it('aliases "tail" as "rest"', function () {
+    var promises = [
+      _.promise(123),
+      _.promise(456),
+      _.promise(789)
+    ];
+    
+    return _.rest(promises).then(function (res) {
+      expect(res).to.eql([456,789]);
+    });
+  });
+  
   it('#reverse()', function () {
     var promises = [
       _.promise(123),
