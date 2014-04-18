@@ -8,7 +8,7 @@
     "lint": "jshint index.js lib/",
     "commit": "npm run test && npm run build-standalone && git add . && git commit",
     "build-standalone": "node_modules/.bin/browserify index.js -o dist/lag.js",
-    "publish-modules": "npm test && build/publish.js"
+    "publish-modules": "npm test && build/publish.js && npm publish"
   },
   "repository": {
     "type": "git",
