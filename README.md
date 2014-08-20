@@ -56,25 +56,25 @@ _.map(_.add(1), promises)
   * [each](#eachfn-promises)
   * [each.series](#eachseriesfn-promises)
   * [map](#mapfn-promises)
-  * [mapSeries](#mapseriesfn-promises)
+  * [map.series](#mapseriesfn-promises)
   * [filter](#filterfn-promises)
-  * [filterSeries](#filterseriesfn-promises)
+  * [filter.series](#filterseriesfn-promises)
   * [reject](#rejectfn-promises)
-  * [rejectSeries](#rejectseriesfn-promises)
+  * [reject.series](#rejectseriesfn-promises)
   * [find](#findfn-promises)
-  * [findSeries](#findseriesfn-promises)
+  * [find.series](#findseriesfn-promises)
   * [reduce](#reducefn-promises)
   * [reduceRight](#reducerightfn-promises)
   * [first](#firstpromises)
-  * [firstValue](#firstvaluepromise)
+  * [first.value](#firstvaluepromise)
   * [last](#lastpromises)
-  * [lastValue](#lastvaluepromise)
+  * [last.value](#lastvaluepromise)
   * [initial](#initialpromises)
-  * [initialValues](#initialvaluespromise)
+  * [initial.values](#initialvaluespromise)
   * [tail](#tailpromises)
-  * [tailValues](#tailvaluespromise)
+  * [tail.values](#tailvaluespromise)
   * [reverse](#reversepromises)
-  * [reverseValues](#reversevaluespromise)
+  * [reverse.values](#reversevaluespromise)
   * [compact](#compactpromises)
 * **[Collections](#collections)**
   * [where](#whereobject-promises)
@@ -122,15 +122,15 @@ _.map(_.add(1), promises)
 
 ### filter(fn, promises)
 
-### filterSeries(fn, promises)
+### filter.series(fn, promises)
 
 ### reject(fn, promises)
 
-### rejectSeries(fn, promises)
+### reject.series(fn, promises)
 
 ### find(fn, promises)
 
-### findSeries(fn, promises)
+### find.series(fn, promises)
 
 ### reduce(fn, promises)
 
@@ -138,23 +138,23 @@ _.map(_.add(1), promises)
 
 ### first(promises)
 
-### firstValue(promise)
+### first.value(promise)
 
 ### last(promises)
 
-### lastValue(promise)
+### last.value(promise)
 
 ### initial(promises)
 
-### initialValues(promise)
+### initial.values(promise)
 
 ### tail(promises)
 
-### tailValues(promise)
+### tail.values(promise)
 
 ### reverse(promises)
 
-### reverseValues(promise)
+### reverse.values(promise)
 
 ### compact(promises)
 
