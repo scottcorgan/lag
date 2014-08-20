@@ -1,6 +1,6 @@
 {
   "name": "lag",
-  "version": "0.0.13",
+  "version": "0.1.0",
   "description": "Lag helps with functional promises.",
   "main": "index.js",
   "scripts": {
@@ -73,7 +73,8 @@
       "beforeEach": true,
       "afterEach": true,
       "chai": true,
-      "Regex": true
+      "Regex": true,
+      "Promise": true
     }
   }
 }
