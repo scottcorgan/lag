@@ -54,7 +54,7 @@ _.map(_.add(1), promises)
 
 * **[Arrays](#arrays)**
   * [each](#eachfn-promises)
-  * [eachSeries](#eachseriesfn-promises)
+  * [each.series](#eachseriesfn-promises)
   * [map](#mapfn-promises)
   * [mapSeries](#mapseriesfn-promises)
   * [filter](#filterfn-promises)
@@ -114,7 +114,7 @@ _.map(_.add(1), promises)
 
 ### each(fn, promises)
 
-### eachSeries(fn, promises)
+### each.series(fn, promises)
 
 ### map(fn, promises)
 
