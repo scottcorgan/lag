@@ -118,7 +118,7 @@ _.map(_.add(1), promises)
 
 ### map(fn, promises)
 
-### mapSeries(fn, promises)
+### map.series(fn, promises)
 
 ### filter(fn, promises)
 
